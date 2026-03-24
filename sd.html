@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>System Design — PrepForge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #13131a;
+  --surface2: #1c1c28;
+  --border: rgba(255,255,255,0.06);
+  --text: #f0f0f8;
+  --muted: #6b6b8a;
+  --accent: #4fc4a8;
+  --accent-dim: rgba(79,196,168,0.12);
+  --l3: #4ade80;
+  --l4: #60a5fa;
+  --l5: #fbbf24;
+  --l6: #f87171;
+  --must: #a78bfa;
+  --high: #60a5fa;
+  --medium: #4ade80;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(10,10,15,0.9); backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0.75rem 1.5rem;
+  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+}
+.back-btn {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  color: var(--muted); text-decoration: none; font-size: 0.82rem;
+  padding: 0.4rem 0.8rem; border-radius: 8px; border: 1px solid var(--border);
+  transition: all 0.2s; white-space: nowrap;
+}
+.back-btn:hover { color: var(--text); border-color: var(--accent); }
+.topbar-title {
+  font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700;
+  background: linear-gradient(135deg, var(--accent), #34d399);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.topbar-stats { display: flex; gap: 1rem; margin-left: auto; align-items: center; flex-wrap: wrap; }
+.tstat { font-size: 0.78rem; color: var(--muted); }
+.tstat strong { color: var(--text); font-weight: 600; }
+.progress-mini { width: 120px; height: 6px; background: var(--surface2); border-radius: 100px; overflow: hidden; }
+.progress-mini-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #34d399); border-radius: 100px; transition: width 0.8s ease; }
+
+.filters {
+  padding: 1rem 1.5rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;
+}
+.filter-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-weight: 600; }
+.filter-btn {
+  padding: 0.3rem 0.75rem; border-radius: 20px; font-size: 0.78rem; font-weight: 500;
+  background: var(--surface2); border: 1px solid var(--border); color: var(--muted);
+  cursor: pointer; transition: all 0.2s;
+}
+.filter-btn:hover { color: var(--text); border-color: rgba(79,196,168,0.4); }
+.filter-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.search-box {
+  padding: 0.35rem 0.9rem; border-radius: 20px; font-size: 0.82rem;
+  background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+  outline: none; transition: border-color 0.2s; width: 220px;
+  font-family: 'DM Sans', sans-serif;
+}
+.search-box:focus { border-color: var(--accent); }
+.search-box::placeholder { color: var(--muted); }
+
+/* KANBAN-LIKE CARD GRID */
+.cards-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
+
+/* Type section headers */
+.type-section { margin-bottom: 2.5rem; }
+.type-header {
+  display: flex; align-items: center; gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.type-title {
+  font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700;
+}
+.type-badge {
+  padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.72rem; font-weight: 600;
+}
+.type-Foundation { background: rgba(79,196,168,0.1); color: var(--accent); }
+.type-HLD { background: rgba(167,139,250,0.1); color: var(--must); }
+.type-LLD { background: rgba(96,165,250,0.1); color: var(--high); }
+.type-Concept { background: rgba(251,191,36,0.1); color: var(--l5); }
+.type-progress-line { flex: 1; height: 2px; background: var(--surface2); border-radius: 100px; max-width: 200px; overflow: hidden; }
+.type-progress-fill { height: 100%; border-radius: 100px; background: linear-gradient(90deg, var(--accent), #34d399); }
+.type-count { font-size: 0.75rem; color: var(--muted); }
+
+.sd-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 0.75rem;
+}
+
+.sd-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 1rem;
+  transition: all 0.2s; cursor: pointer;
+  position: relative; overflow: hidden;
+}
+.sd-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+  opacity: 0; transition: opacity 0.2s;
+}
+.sd-card:hover { border-color: rgba(79,196,168,0.3); transform: translateY(-2px); }
+.sd-card:hover::before { opacity: 1; }
+.sd-card.card-done { background: rgba(79,196,168,0.05); border-color: rgba(79,196,168,0.2); }
+.sd-card.card-done::before { opacity: 1; }
+
+.card-top {
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.6rem;
+}
+.card-name { font-weight: 600; font-size: 0.88rem; line-height: 1.35; flex: 1; }
+.card-name .pre-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem; color: var(--accent); background: var(--accent-dim);
+  padding: 0.1rem 0.3rem; border-radius: 3px; margin-right: 0.3rem;
+}
+
+.card-badges { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+.badge {
+  display: inline-block; padding: 0.15rem 0.45rem; border-radius: 5px;
+  font-size: 0.66rem; font-weight: 600; white-space: nowrap;
+}
+.badge-l3 { background: rgba(74,222,128,0.1); color: var(--l3); }
+.badge-l4 { background: rgba(96,165,250,0.1); color: var(--l4); }
+.badge-l5 { background: rgba(251,191,36,0.1); color: var(--l5); }
+.badge-l6 { background: rgba(248,113,113,0.1); color: var(--l6); }
+.badge-must { background: rgba(167,139,250,0.1); color: var(--must); }
+.badge-high { background: rgba(96,165,250,0.1); color: var(--high); }
+.badge-medium { background: rgba(74,222,128,0.1); color: var(--medium); }
+.badge-pattern { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+
+.card-notes {
+  font-size: 0.78rem; color: var(--muted); line-height: 1.5;
+  margin-bottom: 0.75rem; display: none;
+  background: var(--surface2); border-radius: 6px; padding: 0.6rem 0.75rem;
+  border-left: 2px solid var(--accent);
+}
+.sd-card.expanded .card-notes { display: block; }
+
+.card-bottom { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.status-select {
+  padding: 0.22rem 0.55rem; border-radius: 7px; font-size: 0.72rem; font-weight: 500;
+  border: 1px solid var(--border); background: var(--surface2); color: var(--muted);
+  cursor: pointer; outline: none; font-family: 'DM Sans', sans-serif;
+}
+.status-select.status-done { background: rgba(79,196,168,0.1); color: var(--accent); border-color: rgba(79,196,168,0.3); }
+.status-select.status-inprog { background: rgba(251,191,36,0.1); color: var(--l5); border-color: rgba(251,191,36,0.3); }
+.status-select.status-skip { background: rgba(248,113,113,0.1); color: var(--l6); border-color: rgba(248,113,113,0.3); }
+.rev-btns { display: flex; gap: 0.25rem; }
+.rev-btn {
+  padding: 0.18rem 0.45rem; border-radius: 5px; border: 1px solid var(--border);
+  background: var(--surface2); color: var(--muted); font-size: 0.65rem; font-weight: 700;
+  cursor: pointer; transition: all 0.2s;
+}
+.rev-btn:hover { border-color: var(--accent); color: var(--accent); }
+.rev-btn.rev-done { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.card-link {
+  margin-left: auto;
+  display: inline-flex; align-items: center; gap: 0.25rem;
+  color: var(--accent); text-decoration: none; font-size: 0.72rem;
+}
+.card-link:hover { opacity: 0.7; }
+.expand-hint { font-size: 0.68rem; color: var(--muted); margin-left: auto; }
+.sd-card.expanded .expand-hint { display: none; }
+
+.no-results { text-align: center; padding: 4rem 2rem; color: var(--muted); }
+
+@media (max-width: 640px) {
+  .topbar { padding: 0.6rem 1rem; }
+  .filters { padding: 0.75rem 1rem; }
+  .search-box { width: 100%; }
+  .cards-container { padding: 0.75rem; }
+  .sd-grid { grid-template-columns: 1fr; }
+  .topbar-stats .progress-mini { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="index.html" class="back-btn">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Home
+  </a>
+  <div class="topbar-title">🏗️ System Design Tracker</div>
+  <div class="topbar-stats">
+    <div class="tstat"><strong id="done-count">0</strong> / 78 Done</div>
+    <div class="tstat"><strong id="showing-count">78</strong> showing</div>
+    <div class="progress-mini"><div class="progress-mini-fill" id="top-progress" style="width:0%"></div></div>
+    <div class="tstat" id="pct-text">0%</div>
+  </div>
+</div>
+
+<div class="filters">
+  <span class="filter-label">Type:</span>
+  <div id="type-filters" style="display:flex;gap:0.4rem;flex-wrap:wrap">
+    <button class="filter-btn active" data-filter="type" data-value="all">All</button>
+    <button class="filter-btn" data-filter="type" data-value="Foundation">Foundation</button>
+    <button class="filter-btn" data-filter="type" data-value="HLD">HLD</button>
+    <button class="filter-btn" data-filter="type" data-value="LLD">LLD</button>
+    <button class="filter-btn" data-filter="type" data-value="Concept">Concept</button>
+  </div>
+  <span class="filter-label" style="margin-left:0.5rem">Priority:</span>
+  <div style="display:flex;gap:0.4rem;flex-wrap:wrap">
+    <button class="filter-btn active" data-filter="priority" data-value="all">All</button>
+    <button class="filter-btn" data-filter="priority" data-value="Must Do">Must Do</button>
+    <button class="filter-btn" data-filter="priority" data-value="High">High</button>
+    <button class="filter-btn" data-filter="priority" data-value="Medium">Medium</button>
+  </div>
+  <span class="filter-label" style="margin-left:0.5rem">Status:</span>
+  <div style="display:flex;gap:0.4rem;flex-wrap:wrap">
+    <button class="filter-btn active" data-filter="status" data-value="all">All</button>
+    <button class="filter-btn" data-filter="status" data-value="To Do">To Do</button>
+    <button class="filter-btn" data-filter="status" data-value="In Progress">In Progress</button>
+    <button class="filter-btn" data-filter="status" data-value="Done">Done</button>
+  </div>
+  <input type="text" class="search-box" id="search" placeholder="🔍 Search systems..."/>
+</div>
+
+<div class="cards-container" id="cards-container">
+  <div class="no-results" id="no-results" style="display:none">No problems match your filters.</div>
+</div>
+
+<script>
+const RAW_DATA = [{"name": "[PRE] DNS & How the Internet Works", "type": "Foundation", "pattern": "Networking", "companies": "All companies", "difficulty": "L3", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "DNS resolution, recursive vs iterative, TTL, root/TLD/authoritative servers", "link": "https://howdns.works/"}, {"name": "[PRE] HTTP / HTTPS / HTTP2 / HTTP3", "type": "Foundation", "pattern": "Networking", "companies": "All companies", "difficulty": "L3", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Request-response cycle, headers, status codes, TLS handshake, multiplexing in HTTP2", "link": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview"}, {"name": "[PRE] TCP vs UDP", "type": "Foundation", "pattern": "Networking", "companies": "All companies", "difficulty": "L3", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "3-way handshake, reliability vs speed, use cases (video=UDP, file=TCP)", "link": "https://www.cloudflare.com/learning/ddos/glossary/tcp-ip/"}, {"name": "[PRE] WebSocket & Long Polling & SSE", "type": "Foundation", "pattern": "Networking / Real-time", "companies": "All companies", "difficulty": "L4", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Full-duplex, upgrade header, polling vs push, SSE for one-way streams", "link": "https://ably.com/blog/websockets-vs-long-polling"}, {"name": "[PRE] REST vs gRPC vs GraphQL", "type": "Foundation", "pattern": "API Design", "companies": "All companies", "difficulty": "L4", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Stateless REST, Protobuf/streaming gRPC, flexible GraphQL queries, when to use what", "link": "https://medium.com/@sujatagunale/rest-vs-grpc-vs-graphql"}, {"name": "[PRE] ACID Properties", "type": "Foundation", "pattern": "Database", "companies": "All companies", "difficulty": "L3", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Atomicity, Consistency, Isolation, Durability \u2014 with real examples", "link": "https://www.databricks.com/glossary/acid-transactions"}, {"name": "[PRE] Database Indexes (B-Tree, Hash)", "type": "Foundation", "pattern": "Database", "companies": "All companies", "difficulty": "L4", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "B-Tree index, composite index, covering index, when indexes hurt writes", "link": "https://use-the-index-luke.com/"}, {"name": "[PRE] SQL Joins & Query Optimization", "type": "Foundation", "pattern": "Database", "companies": "All companies", "difficulty": "L3", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "INNER/LEFT/RIGHT/FULL joins, EXPLAIN plan, N+1 problem, connection pooling", "link": "https://use-the-index-luke.com/sql/explain-plan"}, {"name": "[PRE] Transactions & Isolation Levels", "type": "Foundation", "pattern": "Database", "companies": "All companies", "difficulty": "L4", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Read uncommitted \u2192 Serializable, dirty read, phantom read, non-repeatable read", "link": "https://www.postgresql.org/docs/current/transaction-iso.html"}, {"name": "[PRE] NoSQL Types (Document / KV / Column / Graph)", "type": "Foundation", "pattern": "Database", "companies": "All companies", "difficulty": "L4", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "MongoDB, Redis, Cassandra, Neo4j \u2014 when to pick each type over SQL", "link": "https://www.mongodb.com/nosql-explained"}, {"name": "[PRE] Database Replication (Master-Slave / Multi-Master)", "type": "Foundation", "pattern": "Database", "companies": "All companies", "difficulty": "L4", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Synchronous vs async replication, read replicas, replication lag, failover", "link": "https://highscalability.com/database-replication/"}, {"name": "[PRE] Database Sharding & Partitioning", "type": "Foundation", "pattern": "Database", "companies": "All companies", "difficulty": "L4", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Horizontal vs vertical sharding, range/hash/directory partitioning, hotspot keys", "link": "https://medium.com/@interviewready/database-sharding"}, {"name": "[PRE] Caching Fundamentals (Redis / Memcached)", "type": "Foundation", "pattern": "Caching", "companies": "All companies", "difficulty": "L4", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Cache-aside, write-through, write-back, TTL, eviction policies (LRU/LFU)", "link": "https://redis.io/docs/manual/patterns/"}, {"name": "[PRE] Cache Invalidation Strategies", "type": "Foundation", "pattern": "Caching", "companies": "All companies", "difficulty": "L4", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "TTL, event-driven invalidation, cache stampede, dog-pile effect, versioned keys", "link": "https://medium.com/@sujatagunale/cache-invalidation"}, {"name": "[PRE] CDN Basics", "type": "Foundation", "pattern": "Caching / Networking", "companies": "All companies", "difficulty": "L4", "priority": "High", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Edge servers, PoP, origin pull vs push CDN, cache-control headers", "link": "https://www.cloudflare.com/learning/cdn/what-is-a-cdn/"}, {"name": "[PRE] CAP Theorem in Depth", "type": "Foundation", "pattern": "Distributed System", "companies": "All FAANG", "difficulty": "L4", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "CP vs AP systems, partition tolerance is mandatory, real-world trade-offs", "link": "https://www.infoq.com/articles/cap-twelve-years-later-how-the-rules-have-changed/"}, {"name": "[PRE] Consistent Hashing", "type": "Foundation", "pattern": "Distributed System", "companies": "All FAANG, Uber", "difficulty": "L4", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Ring-based routing, virtual nodes, minimal key remapping on scale up/down", "link": "https://highscalability.com/consistent-hashing/"}, {"name": "[PRE] Load Balancing Algorithms", "type": "Foundation", "pattern": "Distributed System", "companies": "All companies", "difficulty": "L4", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Round-robin, least connections, IP hash, L4 vs L7 LB, health checks", "link": "https://www.nginx.com/resources/glossary/load-balancing/"}, {"name": "[PRE] Message Queues & Pub-Sub (Kafka / RabbitMQ)", "type": "Foundation", "pattern": "Messaging", "companies": "All companies", "difficulty": "L4", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Producer-consumer, topics, partitions, consumer groups, at-least-once delivery", "link": "https://kafka.apache.org/intro"}, {"name": "[PRE] Idempotency & Exactly-Once Semantics", "type": "Foundation", "pattern": "Distributed System", "companies": "Stripe, Razorpay, Uber", "difficulty": "L4", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Idempotency keys, deduplication, at-most / at-least / exactly-once guarantees", "link": "https://stripe.com/blog/idempotency"}, {"name": "[PRE] Distributed Locks (Redis / Zookeeper)", "type": "Foundation", "pattern": "Distributed System", "companies": "Uber, Flipkart, Amazon", "difficulty": "L5", "priority": "High", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Redlock algorithm, lease-based locks, fencing tokens, Zookeeper znodes", "link": "https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html"}, {"name": "[PRE] Eventual Consistency & BASE", "type": "Foundation", "pattern": "Distributed System", "companies": "Amazon, Netflix", "difficulty": "L5", "priority": "High", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "BASE vs ACID, convergence, conflict resolution, vector clocks", "link": "https://www.allthingsdistributed.com/2008/12/eventually_consistent.html"}, {"name": "[PRE] Bloom Filter", "type": "Foundation", "pattern": "Probabilistic DS", "companies": "Google, Amazon, Akamai", "difficulty": "L5", "priority": "High", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Space-efficient set membership, false positives only, no false negatives, use cases", "link": "https://llimllib.github.io/bloomfilter-tutorial/"}, {"name": "[PRE] HyperLogLog", "type": "Foundation", "pattern": "Probabilistic DS", "companies": "Redis, Twitter, Amazon", "difficulty": "L5", "priority": "Medium", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Cardinality estimation at scale, count distinct with minimal memory", "link": "https://redis.io/docs/data-types/probabilistic/hyperloglogs/"}, {"name": "[PRE] Trie Data Structure", "type": "Foundation", "pattern": "Data Structure", "companies": "Google, Amazon, LinkedIn", "difficulty": "L4", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Prefix tree, autocomplete, O(m) lookup, memory vs speed trade-off", "link": "https://leetcode.com/explore/learn/card/trie/"}, {"name": "[PRE] Time-Series Data & Storage", "type": "Foundation", "pattern": "Database / Observability", "companies": "Datadog, Grafana, Netflix", "difficulty": "L5", "priority": "High", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Write-heavy workload, downsampling, retention policies, InfluxDB / Prometheus", "link": "https://www.influxdata.com/time-series-database/"}, {"name": "[PRE] Latency vs Throughput vs Availability", "type": "Foundation", "pattern": "System Concepts", "companies": "All companies", "difficulty": "L3", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "P99 latency, SLA/SLO/SLI, 9s of availability (99.9% = 8.7h downtime/yr)", "link": "https://sre.google/sre-book/service-level-objectives/"}, {"name": "[PRE] Horizontal vs Vertical Scaling", "type": "Foundation", "pattern": "System Concepts", "companies": "All companies", "difficulty": "L3", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Scale-up vs scale-out, stateless services, sticky sessions problem", "link": "https://medium.com/@interviewready/horizontal-vs-vertical-scaling"}, {"name": "[PRE] Microservices vs Monolith", "type": "Foundation", "pattern": "Architecture", "companies": "All companies", "difficulty": "L4", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Service boundaries, inter-service communication, deployment complexity, strangler fig", "link": "https://martinfowler.com/articles/microservices.html"}, {"name": "[PRE] API Gateway & Service Mesh", "type": "Foundation", "pattern": "Architecture", "companies": "Netflix, Uber, Amazon", "difficulty": "L4", "priority": "High", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Rate limiting at gateway, auth, service discovery, sidecar pattern (Istio/Envoy)", "link": "https://www.nginx.com/learn/api-gateway/"}, {"name": "[PRE] Circuit Breaker & Retry Patterns", "type": "Foundation", "pattern": "Resilience", "companies": "Netflix, Uber, Stripe", "difficulty": "L4", "priority": "High", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Closed/open/half-open states, exponential backoff, jitter, bulkhead pattern", "link": "https://martinfowler.com/bliki/CircuitBreaker.html"}, {"name": "[PRE] Hashing Fundamentals (MD5, SHA, xxHash)", "type": "Foundation", "pattern": "System Concepts", "companies": "All companies", "difficulty": "L3", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Collision resistance, consistent hashing vs cryptographic hash, checksum use cases", "link": "https://medium.com/@sujatagunale/hashing-in-system-design"}, {"name": "[PRE] Storage Types (Block / Object / File)", "type": "Foundation", "pattern": "Storage", "companies": "AWS, Google Cloud", "difficulty": "L4", "priority": "High", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "EBS vs S3 vs EFS, use case mapping, object storage for media/backups", "link": "https://aws.amazon.com/what-is/object-storage/"}, {"name": "[PRE] Encoding & Serialization (JSON / Protobuf / Avro)", "type": "Foundation", "pattern": "Data", "companies": "All companies", "difficulty": "L4", "priority": "Medium", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Schema evolution, binary vs text formats, Protobuf for gRPC, Avro for Kafka", "link": "https://martin.kleppmann.com/2012/12/05/schema-evolution-in-avro-protocol-buffers-thrift.html"}, {"name": "[PRE] Security Basics (Auth, OAuth2, JWT)", "type": "Foundation", "pattern": "Security", "companies": "All companies", "difficulty": "L4", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "OAuth2 flows, JWT structure, refresh tokens, API key vs token, HTTPS/TLS", "link": "https://oauth.net/2/"}, {"name": "[PRE] Rate Limiting Algorithms", "type": "Foundation", "pattern": "System Concepts", "companies": "Uber, Stripe, Cloudflare", "difficulty": "L4", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Token bucket, leaky bucket, fixed window, sliding window log, sliding window counter", "link": "https://medium.com/@sujatagunale/rate-limiting-algorithms"}, {"name": "[PRE] Back-of-the-Envelope Estimation", "type": "Foundation", "pattern": "System Concepts", "companies": "All FAANG", "difficulty": "L3", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "QPS calc, storage sizing, bandwidth, memory \u2014 powers of 2 & latency numbers", "link": "https://github.com/donnemartin/system-design-primer#back-of-the-envelope-calculations"}, {"name": "URL Shortener (TinyURL / Bit.ly)", "type": "HLD", "pattern": "Hashing / Distributed System", "companies": "Google, Amazon, Uber", "difficulty": "L4", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Base62 encoding, Consistent Hashing, DB sharding, Redis cache", "link": "https://leetcode.com/discuss/interview-question/system-design/124658/"}, {"name": "Design WhatsApp / Telegram", "type": "HLD", "pattern": "Messaging / Real-time", "companies": "Meta, Flipkart, Uber", "difficulty": "L5", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "WebSocket, message queues, end-to-end encryption, fan-out", "link": "https://highscalability.com/whatsapp-architecture/"}, {"name": "Design Uber / Lyft", "type": "HLD", "pattern": "Geo-distributed / Real-time", "companies": "Uber, Ola, FAANG", "difficulty": "L5", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Geohashing, Kafka, surge pricing, trip matching, driver location", "link": "https://leetcode.com/discuss/interview-question/system-design/124673/"}, {"name": "Design Netflix / YouTube", "type": "HLD", "pattern": "Streaming / CDN", "companies": "Netflix, YouTube, Hotstar", "difficulty": "L5", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "CDN, HLS streaming, chunking, transcoding pipeline, recommendation", "link": "https://highscalability.com/netflix-architecture/"}, {"name": "Design Twitter / X Feed", "type": "HLD", "pattern": "Social Graph / Fan-out", "companies": "Twitter, Meta, LinkedIn", "difficulty": "L5", "priority": "High", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Fan-out on write vs read, celebrity problem, timeline aggregation", "link": "https://highscalability.com/designing-twitter/"}, {"name": "Design Google Search / Web Crawler", "type": "HLD", "pattern": "Search / Indexing", "companies": "Google, Bing", "difficulty": "L6", "priority": "High", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "PageRank, inverted index, MapReduce, Bloom filter, crawl scheduling", "link": "https://leetcode.com/discuss/interview-question/system-design/1072553/"}, {"name": "Design Instagram / Photo Sharing", "type": "HLD", "pattern": "Social Media / CDN", "companies": "Meta, Snapchat, Pinterest", "difficulty": "L4", "priority": "High", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Object storage (S3), CDN, sharding user data, feed ranking", "link": "https://leetcode.com/discuss/interview-question/system-design/742808/"}, {"name": "Design Facebook / LinkedIn News Feed", "type": "HLD", "pattern": "Social Graph / Fan-out", "companies": "Meta, LinkedIn", "difficulty": "L5", "priority": "High", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "EdgeRank, pull vs push, ranking signals, cache invalidation", "link": "https://highscalability.com/facebook-news-feed/"}, {"name": "Design Dropbox / Google Drive", "type": "HLD", "pattern": "File Storage / Sync", "companies": "Dropbox, Google, Microsoft", "difficulty": "L5", "priority": "High", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Chunking, delta sync, conflict resolution, S3 + metadata DB", "link": "https://leetcode.com/discuss/interview-question/system-design/125184/"}, {"name": "Design Google Docs / Collaborative Editor", "type": "HLD", "pattern": "Real-time Collaboration", "companies": "Google, Notion, Atlassian", "difficulty": "L6", "priority": "Medium", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "OT / CRDT, WebSocket, conflict-free merging, versioning", "link": "https://medium.com/@sujatagunale/google-docs-system-design"}, {"name": "Rate Limiter", "type": "HLD", "pattern": "Caching / Throttling", "companies": "Uber, Stripe, Cloudflare", "difficulty": "L4", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Token bucket, leaky bucket, sliding window log, Redis counters", "link": "https://leetcode.com/discuss/interview-question/system-design/124558/"}, {"name": "Design a Cache System (Redis clone)", "type": "LLD", "pattern": "Caching", "companies": "Amazon, Flipkart, Paytm", "difficulty": "L4", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "LRU / LFU eviction, TTL, write-through vs write-back, consistent hashing", "link": "https://leetcode.com/discuss/interview-question/system-design/322112/"}, {"name": "Design a CDN", "type": "HLD", "pattern": "CDN / Caching", "companies": "Akamai, Cloudflare, Netflix", "difficulty": "L5", "priority": "High", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "PoP servers, cache invalidation, geo-routing, anycast DNS", "link": "https://highscalability.com/cdn-design/"}, {"name": "Notification System (Push/Email/SMS)", "type": "HLD", "pattern": "Messaging / Fan-out", "companies": "Flipkart, Amazon, Swiggy", "difficulty": "L4", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Kafka, priority queues, deduplication, retry/idempotency", "link": "https://leetcode.com/discuss/interview-question/system-design/1096518/"}, {"name": "Design Kafka / Message Queue", "type": "HLD", "pattern": "Streaming / Messaging", "companies": "Uber, LinkedIn, Netflix", "difficulty": "L5", "priority": "High", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Partitions, consumer groups, offset, at-least-once delivery, compaction", "link": "https://highscalability.com/kafka-architecture/"}, {"name": "Design a Chat Application", "type": "HLD", "pattern": "Real-time / WebSocket", "companies": "Slack, Discord, Zomato", "difficulty": "L4", "priority": "High", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "WebSocket vs long-polling, presence system, message ordering", "link": "https://leetcode.com/discuss/interview-question/system-design/350587/"}, {"name": "Payment Gateway / UPI System", "type": "HLD", "pattern": "Distributed Transactions", "companies": "Paytm, Razorpay, Stripe", "difficulty": "L5", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "2PC, idempotency, ACID, saga pattern, reconciliation", "link": "https://medium.com/@interviewready/payment-system-design"}, {"name": "Design a Wallet / Ledger System", "type": "HLD", "pattern": "Distributed Transactions", "companies": "PhonePe, Google Pay, Grab", "difficulty": "L5", "priority": "High", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Double-entry bookkeeping, idempotent ops, event sourcing", "link": "https://medium.com/@sujatagunale/wallet-system-design"}, {"name": "Typeahead / Autocomplete", "type": "HLD", "pattern": "Search / Trie", "companies": "Google, Amazon, LinkedIn", "difficulty": "L4", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Trie data structure, prefix search, Redis sorted sets, Elasticsearch", "link": "https://leetcode.com/discuss/interview-question/system-design/124724/"}, {"name": "Design Elasticsearch / Search Engine", "type": "HLD", "pattern": "Search / Indexing", "companies": "Uber, LinkedIn, Zomato", "difficulty": "L5", "priority": "High", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Inverted index, sharding, relevance scoring (TF-IDF / BM25)", "link": "https://highscalability.com/elasticsearch-architecture/"}, {"name": "Leaderboard System", "type": "HLD", "pattern": "Caching / Sorted Sets", "companies": "Gaming companies, Dream11", "difficulty": "L4", "priority": "High", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Redis ZADD/ZRANK, time-windowed leaderboards, batch scoring", "link": "https://medium.com/@interviewready/leaderboard-system-design"}, {"name": "Design BookMyShow / Ticket Booking", "type": "HLD", "pattern": "Concurrency / Locking", "companies": "BookMyShow, Zomato, Swiggy", "difficulty": "L5", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Optimistic locking, seat reservation, overbooking prevention", "link": "https://leetcode.com/discuss/interview-question/system-design/124941/"}, {"name": "Design Amazon E-Commerce", "type": "HLD", "pattern": "Distributed System", "companies": "Amazon, Flipkart, Meesho", "difficulty": "L5", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Cart service, inventory, order lifecycle, recommendation engine", "link": "https://highscalability.com/amazon-architecture/"}, {"name": "Design Zomato / Food Delivery", "type": "HLD", "pattern": "Geo / Real-time", "companies": "Zomato, Swiggy, DoorDash", "difficulty": "L4", "priority": "High", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Order matching, delivery agent tracking, real-time ETA", "link": "https://medium.com/@sujatagunale/zomato-system-design"}, {"name": "Hotel / Flight Booking System", "type": "HLD", "pattern": "Concurrency / Saga", "companies": "MakeMyTrip, Airbnb, Booking.com", "difficulty": "L5", "priority": "High", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Saga pattern, compensating transactions, distributed locking", "link": "https://medium.com/@interviewready/hotel-booking-system-design"}, {"name": "Design a Monitoring / Alerting System", "type": "HLD", "pattern": "Observability / Streaming", "companies": "Datadog, New Relic, Netflix", "difficulty": "L5", "priority": "High", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Time-series DB (Prometheus), Kafka pipeline, alert rule engine", "link": "https://leetcode.com/discuss/interview-question/system-design/1082027/"}, {"name": "Design a Distributed Job Scheduler", "type": "HLD", "pattern": "Distributed System", "companies": "Airbnb, Uber, LinkedIn", "difficulty": "L5", "priority": "High", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Cron-like triggers, exactly-once execution, idempotency, Zookeeper", "link": "https://medium.com/@interviewready/job-scheduler-design"}, {"name": "Design a Distributed Key-Value Store", "type": "HLD", "pattern": "Distributed System", "companies": "Amazon, Google, Apple", "difficulty": "L6", "priority": "High", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Consistent hashing, Dynamo paper, quorum reads/writes, gossip", "link": "https://highscalability.com/amazon-dynamo/"}, {"name": "LLD: Parking Lot", "type": "LLD", "pattern": "OOP / State Machine", "companies": "Amazon, Flipkart, Uber", "difficulty": "L4", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Strategy pattern, factory, ticket system, floor management", "link": "https://leetcode.com/discuss/interview-question/object-oriented-design/125394/"}, {"name": "LLD: Library Management System", "type": "LLD", "pattern": "OOP / SOLID", "companies": "TCS, Infosys, Wipro", "difficulty": "L4", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Observer pattern, fine calculation, book reservation, user roles", "link": "https://leetcode.com/discuss/interview-question/object-oriented-design/"}, {"name": "LLD: ATM / Vending Machine", "type": "LLD", "pattern": "State Machine / OOP", "companies": "Paytm, Flipkart, Razorpay", "difficulty": "L4", "priority": "High", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "State pattern, cash dispensing algorithm, transaction rollback", "link": "https://medium.com/@sujatagunale/atm-system-design-lld"}, {"name": "LLD: Elevator System", "type": "LLD", "pattern": "State Machine / OOP", "companies": "Amazon, Google, Microsoft", "difficulty": "L5", "priority": "High", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "SCAN algorithm, multiple elevators, priority scheduling", "link": "https://leetcode.com/discuss/interview-question/object-oriented-design/124719/"}, {"name": "LLD: Snake & Ladder / Board Game", "type": "LLD", "pattern": "OOP / Design Patterns", "companies": "Microsoft, Snapdeal", "difficulty": "L4", "priority": "Medium", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Factory pattern, player management, board abstraction", "link": "https://leetcode.com/discuss/interview-question/object-oriented-design/"}, {"name": "LLD: In-Memory Cache (LRU / LFU)", "type": "LLD", "pattern": "Caching / Data Structure", "companies": "Amazon, Google, Uber", "difficulty": "L4", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "DoublyLinkedList + HashMap, O(1) get/put, capacity management", "link": "https://leetcode.com/problems/lru-cache/"}, {"name": "CAP Theorem", "type": "Concept", "pattern": "Distributed System", "companies": "All FAANG", "difficulty": "L4", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Consistency vs Availability vs Partition Tolerance tradeoffs", "link": "https://en.wikipedia.org/wiki/CAP_theorem"}, {"name": "Consistent Hashing", "type": "Concept", "pattern": "Distributed System", "companies": "All FAANG, Uber", "difficulty": "L4", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Virtual nodes, ring-based routing, minimise key remapping", "link": "https://highscalability.com/consistent-hashing/"}, {"name": "SQL vs NoSQL Trade-offs", "type": "Concept", "pattern": "Database", "companies": "All companies", "difficulty": "L4", "priority": "Must Do", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "ACID vs BASE, sharding strategies, OLTP vs OLAP workloads", "link": "https://medium.com/@sujatagunale/sql-nosql-tradeoffs"}, {"name": "Database Sharding Strategies", "type": "Concept", "pattern": "Database", "companies": "Uber, Amazon, Flipkart", "difficulty": "L5", "priority": "High", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Range, hash, directory-based, cross-shard queries, hotspot mitigation", "link": "https://highscalability.com/database-sharding/"}, {"name": "Event-Driven Architecture / CQRS", "type": "Concept", "pattern": "Architecture Pattern", "companies": "Netflix, Uber, Stripe", "difficulty": "L5", "priority": "High", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Event sourcing, domain events, eventual consistency, read/write separation", "link": "https://martinfowler.com/eaaDev/EventSourcing.html"}, {"name": "Saga Pattern / Distributed Transactions", "type": "Concept", "pattern": "Architecture Pattern", "companies": "Flipkart, Swiggy, Stripe", "difficulty": "L5", "priority": "High", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Choreography vs orchestration, compensating transactions, outbox pattern", "link": "https://microservices.io/patterns/data/saga.html"}, {"name": "Bloom Filter", "type": "Concept", "pattern": "Probabilistic Data Structure", "companies": "Google, Amazon, Akamai", "difficulty": "L5", "priority": "Medium", "status": "To Do", "rev1": "", "rev2": "", "rev3": "", "notes": "Space-efficient membership check, false positives, no false negatives", "link": "https://en.wikipedia.org/wiki/Bloom_filter"}];
+const STORAGE_KEY = 'prepforge_sd';
+let progress = {};
+let filters = { type: 'all', priority: 'all', status: 'all', search: '' };
+
+function loadProgress() {
+  try { progress = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch(e) { progress = {}; }
+}
+function saveProgress() { localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); }
+function getItem(idx) {
+  return progress[idx] || { status: 'To Do', rev1: false, rev2: false, rev3: false };
+}
+function setItem(idx, key, val) {
+  if (!progress[idx]) progress[idx] = { status: 'To Do', rev1: false, rev2: false, rev3: false };
+  progress[idx][key] = val;
+  saveProgress();
+  updateStats();
+}
+
+function updateStats() {
+  const done = Object.values(progress).filter(v => v.status === 'Done').length;
+  const pct = Math.round((done / 78) * 100);
+  document.getElementById('done-count').textContent = done;
+  document.getElementById('top-progress').style.width = pct + '%';
+  document.getElementById('pct-text').textContent = pct + '%';
+}
+
+function diffBadge(d) {
+  const cls = d === 'L3' ? 'badge-l3' : d === 'L4' ? 'badge-l4' : d === 'L5' ? 'badge-l5' : 'badge-l6';
+  return `<span class="badge ${cls}">${d}</span>`;
+}
+
+function priorityBadge(p) {
+  if (p === 'Must Do') return '<span class="badge badge-must">Must Do</span>';
+  if (p === 'High') return '<span class="badge badge-high">High</span>';
+  if (p === 'Medium') return '<span class="badge badge-medium">Medium</span>';
+  return '';
+}
+
+function cleanName(name) {
+  if (name.startsWith('[PRE]')) {
+    return `<span class="pre-tag">PRE</span>${name.replace('[PRE] ', '')}`;
+  }
+  return name;
+}
+
+function renderCards() {
+  const container = document.getElementById('cards-container');
+  const s = filters.search.toLowerCase();
+  container.innerHTML = '';
+  
+  const types = ['Foundation', 'HLD', 'LLD', 'Concept'];
+  let totalShowing = 0;
+
+  types.forEach(type => {
+    if (filters.type !== 'all' && filters.type !== type) return;
+
+    const items = RAW_DATA
+      .map((r, i) => ({...r, idx: i}))
+      .filter(r => r.type === type)
+      .filter(r => {
+        if (filters.priority !== 'all' && r.priority !== filters.priority) return false;
+        const prog = getItem(r.idx);
+        if (filters.status !== 'all' && prog.status !== filters.status) return false;
+        if (s && !r.name.toLowerCase().includes(s) && !r.pattern.toLowerCase().includes(s) && !r.companies.toLowerCase().includes(s) && !r.notes.toLowerCase().includes(s)) return false;
+        return true;
+      });
+
+    if (items.length === 0) return;
+    totalShowing += items.length;
+
+    const done = items.filter(r => getItem(r.idx).status === 'Done').length;
+    const pct = Math.round((done / items.length) * 100);
+
+    const section = document.createElement('div');
+    section.className = 'type-section';
+    section.innerHTML = `
+      <div class="type-header">
+        <span class="type-title">${type}</span>
+        <span class="type-badge type-${type}">${type}</span>
+        <div class="type-progress-line"><div class="type-progress-fill" style="width:${pct}%"></div></div>
+        <span class="type-count">${done}/${items.length} · ${pct}%</span>
+      </div>
+      <div class="sd-grid" id="grid-${type}"></div>
+    `;
+
+    const grid = section.querySelector('.sd-grid');
+    items.forEach(item => {
+      const prog = getItem(item.idx);
+      const card = document.createElement('div');
+      const statusClass = prog.status === 'Done' ? 'status-done' : prog.status === 'In Progress' ? 'status-inprog' : prog.status === 'Skip' ? 'status-skip' : '';
+      card.className = 'sd-card' + (prog.status === 'Done' ? ' card-done' : '');
+      card.dataset.idx = item.idx;
+
+      card.innerHTML = `
+        <div class="card-top" onclick="toggleCard(this)">
+          <div class="card-name">${cleanName(item.name)}</div>
+        </div>
+        <div class="card-badges">
+          ${diffBadge(item.difficulty)}
+          ${priorityBadge(item.priority)}
+          <span class="badge badge-pattern">${item.pattern}</span>
+        </div>
+        ${item.notes ? `<div class="card-notes">💡 ${item.notes}</div>` : ''}
+        <div class="card-bottom">
+          <select class="status-select ${statusClass}" onchange="onStatusChange(${item.idx}, this)">
+            <option ${prog.status==='To Do'?'selected':''}>To Do</option>
+            <option ${prog.status==='In Progress'?'selected':''}>In Progress</option>
+            <option ${prog.status==='Done'?'selected':''}>Done</option>
+            <option ${prog.status==='Skip'?'selected':''}>Skip</option>
+          </select>
+          <div class="rev-btns">
+            <button class="rev-btn ${prog.rev1?'rev-done':''}" onclick="toggleRev(${item.idx},1,event)">R1</button>
+            <button class="rev-btn ${prog.rev2?'rev-done':''}" onclick="toggleRev(${item.idx},2,event)">R2</button>
+            <button class="rev-btn ${prog.rev3?'rev-done':''}" onclick="toggleRev(${item.idx},3,event)">R3</button>
+          </div>
+          ${item.link ? `<a href="${item.link}" target="_blank" class="card-link" onclick="event.stopPropagation()">Ref <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg></a>` : ''}
+          ${item.notes ? '<span class="expand-hint">tap to expand ↓</span>' : ''}
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+
+    container.appendChild(section);
+  });
+
+  document.getElementById('showing-count').textContent = totalShowing;
+  document.getElementById('no-results').style.display = totalShowing === 0 ? 'block' : 'none';
+}
+
+function toggleCard(top) {
+  top.closest('.sd-card').classList.toggle('expanded');
+}
+
+function onStatusChange(idx, sel) {
+  const val = sel.value;
+  sel.className = 'status-select' + (val==='Done'?' status-done':val==='In Progress'?' status-inprog':val==='Skip'?' status-skip':'');
+  setItem(idx, 'status', val);
+  renderCards();
+}
+
+function toggleRev(idx, num, e) {
+  e.stopPropagation();
+  const key = 'rev' + num;
+  const curr = getItem(idx)[key];
+  setItem(idx, key, !curr);
+  e.target.classList.toggle('rev-done', !curr);
+}
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const group = btn.dataset.filter;
+    document.querySelectorAll(`[data-filter="${group}"]`).forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    filters[group] = btn.dataset.value;
+    renderCards();
+  });
+});
+
+document.getElementById('search').addEventListener('input', e => {
+  filters.search = e.target.value;
+  renderCards();
+});
+
+loadProgress();
+renderCards();
+updateStats();
+</script>
+</body>
+</html>

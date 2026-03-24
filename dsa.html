@@ -1,29 +1,367 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>DSA Tracker</title>
-<link rel="stylesheet" href="css/styles.css">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DSA Tracker — PrepForge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #13131a;
+  --surface2: #1c1c28;
+  --border: rgba(255,255,255,0.06);
+  --text: #f0f0f8;
+  --muted: #6b6b8a;
+  --accent: #7c6af7;
+  --accent-dim: rgba(124,106,247,0.15);
+  --easy: #4ade80;
+  --medium: #fbbf24;
+  --hard: #f87171;
+  --done-bg: rgba(74,222,128,0.08);
+  --done-border: rgba(74,222,128,0.3);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* TOP BAR */
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(10,10,15,0.9); backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0.75rem 1.5rem;
+  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+}
+.back-btn {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  color: var(--muted); text-decoration: none; font-size: 0.82rem;
+  padding: 0.4rem 0.8rem; border-radius: 8px; border: 1px solid var(--border);
+  transition: all 0.2s; white-space: nowrap;
+}
+.back-btn:hover { color: var(--text); border-color: var(--accent); }
+.topbar-title {
+  font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700;
+  background: linear-gradient(135deg, var(--accent), #a78bfa);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.topbar-stats { display: flex; gap: 1rem; margin-left: auto; align-items: center; flex-wrap: wrap; }
+.tstat { font-size: 0.78rem; color: var(--muted); }
+.tstat strong { color: var(--text); font-weight: 600; }
+.progress-mini { 
+  width: 120px; height: 6px; background: var(--surface2); border-radius: 100px; overflow: hidden;
+}
+.progress-mini-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #a78bfa); border-radius: 100px; transition: width 0.8s ease; }
+
+/* FILTERS */
+.filters {
+  padding: 1rem 1.5rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;
+}
+.filter-group { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+.filter-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-weight: 600; }
+.filter-btn {
+  padding: 0.3rem 0.75rem; border-radius: 20px; font-size: 0.78rem; font-weight: 500;
+  background: var(--surface2); border: 1px solid var(--border); color: var(--muted);
+  cursor: pointer; transition: all 0.2s;
+}
+.filter-btn:hover { color: var(--text); border-color: rgba(124,106,247,0.4); }
+.filter-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.filter-btn.easy-btn.active { background: rgba(74,222,128,0.1); border-color: var(--easy); color: var(--easy); }
+.filter-btn.medium-btn.active { background: rgba(251,191,36,0.1); border-color: var(--medium); color: var(--medium); }
+.filter-btn.hard-btn.active { background: rgba(248,113,113,0.1); border-color: var(--hard); color: var(--hard); }
+.search-box {
+  padding: 0.35rem 0.9rem; border-radius: 20px; font-size: 0.82rem;
+  background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+  outline: none; transition: border-color 0.2s; width: 200px;
+  font-family: 'DM Sans', sans-serif;
+}
+.search-box:focus { border-color: var(--accent); }
+.search-box::placeholder { color: var(--muted); }
+
+/* TABLE */
+.table-wrap { overflow-x: auto; padding: 1.5rem; }
+table { width: 100%; border-collapse: collapse; min-width: 700px; }
+thead th {
+  font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--muted); font-weight: 600; padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap;
+}
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+tbody tr:hover { background: var(--surface2); }
+tbody tr.row-done { background: var(--done-bg); }
+tbody tr.row-done:hover { background: rgba(74,222,128,0.12); }
+td { padding: 0.7rem 0.75rem; font-size: 0.84rem; vertical-align: middle; }
+
+.prob-name { font-weight: 500; }
+.prob-link {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  color: var(--accent); text-decoration: none; font-size: 0.78rem;
+  transition: opacity 0.2s;
+}
+.prob-link:hover { opacity: 0.7; }
+
+.badge {
+  display: inline-block; padding: 0.2rem 0.55rem; border-radius: 6px;
+  font-size: 0.72rem; font-weight: 600; white-space: nowrap;
+}
+.badge-easy { background: rgba(74,222,128,0.1); color: var(--easy); }
+.badge-medium { background: rgba(251,191,36,0.1); color: var(--medium); }
+.badge-hard { background: rgba(248,113,113,0.1); color: var(--hard); }
+.badge-pattern { background: var(--accent-dim); color: var(--accent); }
+.badge-company { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+
+.status-select {
+  padding: 0.25rem 0.6rem; border-radius: 8px; font-size: 0.75rem; font-weight: 500;
+  border: 1px solid var(--border); background: var(--surface2); color: var(--muted);
+  cursor: pointer; outline: none; transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+.status-select.status-done { background: rgba(74,222,128,0.1); color: var(--easy); border-color: rgba(74,222,128,0.3); }
+.status-select.status-inprog { background: rgba(251,191,36,0.1); color: var(--medium); border-color: rgba(251,191,36,0.3); }
+.status-select.status-skip { background: rgba(248,113,113,0.1); color: var(--hard); border-color: rgba(248,113,113,0.3); }
+
+.rev-btns { display: flex; gap: 0.3rem; }
+.rev-btn {
+  width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--surface2); color: var(--muted); font-size: 0.65rem; font-weight: 700;
+  cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;
+}
+.rev-btn:hover { border-color: var(--accent); color: var(--accent); }
+.rev-btn.rev-done { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+.no-results {
+  text-align: center; padding: 4rem 2rem; color: var(--muted); font-size: 0.9rem;
+}
+
+/* Pattern summary */
+.pattern-summary {
+  display: flex; gap: 0.5rem; flex-wrap: wrap; padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.psummary-item {
+  font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 6px;
+  background: var(--surface2); color: var(--muted); border: 1px solid var(--border);
+  cursor: pointer; transition: all 0.2s;
+}
+.psummary-item:hover { border-color: var(--accent); color: var(--accent); }
+
+@media (max-width: 640px) {
+  .topbar { padding: 0.6rem 1rem; }
+  .filters { padding: 0.75rem 1rem; }
+  .search-box { width: 100%; }
+  .topbar-stats .progress-mini { display: none; }
+  .table-wrap { padding: 0.75rem; }
+}
+</style>
 </head>
 <body>
 
-<h1>DSA Tracker</h1>
-<table>
-<thead>
-<tr>
-<th>Problem</th>
-<th>Status</th>
-<th>Rev1</th>
-<th>Rev2</th>
-<th>Rev3</th>
-<th>Link</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
+<div class="topbar">
+  <a href="index.html" class="back-btn">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Home
+  </a>
+  <div class="topbar-title">⚡ DSA Tracker</div>
+  <div class="topbar-stats">
+    <div class="tstat"><strong id="done-count">0</strong> / 200 Done</div>
+    <div class="tstat"><strong id="showing-count">200</strong> showing</div>
+    <div class="progress-mini"><div class="progress-mini-fill" id="top-progress" style="width:0%"></div></div>
+    <div class="tstat" id="pct-text">0%</div>
+  </div>
+</div>
 
-<script src="js/storage.js"></script>
-<script src="js/tracker.js"></script>
-<script>loadTracker("dsa")</script>
+<div class="filters">
+  <span class="filter-label">Status:</span>
+  <div class="filter-group" id="status-filters">
+    <button class="filter-btn active" data-filter="status" data-value="all">All</button>
+    <button class="filter-btn" data-filter="status" data-value="Not Started">Not Started</button>
+    <button class="filter-btn" data-filter="status" data-value="In Progress">In Progress</button>
+    <button class="filter-btn" data-filter="status" data-value="Done">Done</button>
+    <button class="filter-btn" data-filter="status" data-value="Skip">Skip</button>
+  </div>
+  <span class="filter-label" style="margin-left:0.5rem">Diff:</span>
+  <div class="filter-group" id="diff-filters">
+    <button class="filter-btn active" data-filter="diff" data-value="all">All</button>
+    <button class="filter-btn easy-btn" data-filter="diff" data-value="Easy">Easy</button>
+    <button class="filter-btn medium-btn" data-filter="diff" data-value="Medium">Medium</button>
+    <button class="filter-btn hard-btn" data-filter="diff" data-value="Hard">Hard</button>
+  </div>
+  <span class="filter-label" style="margin-left:0.5rem">Pattern:</span>
+  <div class="filter-group" id="pattern-filters">
+    <button class="filter-btn active" data-filter="pattern" data-value="all">All</button>
+  </div>
+  <input type="text" class="search-box" id="search" placeholder="🔍 Search problems..."/>
+</div>
 
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Problem</th>
+        <th>Pattern</th>
+        <th>Company</th>
+        <th>Difficulty</th>
+        <th>Status</th>
+        <th>Rev 1</th>
+        <th>Rev 2</th>
+        <th>Rev 3</th>
+      </tr>
+    </thead>
+    <tbody id="dsa-tbody"></tbody>
+  </table>
+  <div class="no-results" id="no-results" style="display:none">No problems match your filters.</div>
+</div>
+
+<script>
+const RAW_DATA = [{"name": "Lowest Common Ancestor", "link": "https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/", "pattern": "Tree", "company": "Facebook", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Binary Tree Level Order Traversal", "link": "https://leetcode.com/problems/binary-tree-level-order-traversal/", "pattern": "Tree", "company": "Amazon", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Subsets", "link": "https://leetcode.com/problems/subsets/", "pattern": "Backtracking", "company": "Facebook", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Longest Increasing Subsequence", "link": "https://leetcode.com/problems/longest-increasing-subsequence/", "pattern": "DP", "company": "Google", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "House Robber", "link": "https://leetcode.com/problems/house-robber/", "pattern": "DP", "company": "Google", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Car Fleet", "link": "https://leetcode.com/problems/car-fleet/", "pattern": "Stack", "company": "Google", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Min Stack", "link": "https://leetcode.com/problems/min-stack/", "pattern": "Stack", "company": "Google", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Rotting Oranges", "link": "https://leetcode.com/problems/rotting-oranges/", "pattern": "Graph", "company": "Amazon", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Number of Islands", "link": "https://leetcode.com/problems/number-of-islands/", "pattern": "Graph", "company": "Google", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Reorder List", "link": "https://leetcode.com/problems/reorder-list/", "pattern": "Linked List", "company": "Facebook", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Reverse Linked List", "link": "https://leetcode.com/problems/reverse-linked-list/", "pattern": "Linked List", "company": "Amazon", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Binary Search", "link": "https://leetcode.com/problems/binary-search/", "pattern": "Binary Search", "company": "Microsoft", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Group Anagrams", "link": "https://leetcode.com/problems/group-anagrams/", "pattern": "Hashing", "company": "Amazon", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Longest Substring Without Repeating Characters", "link": "https://leetcode.com/problems/longest-substring-without-repeating-characters/", "pattern": "Sliding Window", "company": "Google", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Insert Interval", "link": "https://leetcode.com/problems/insert-interval/", "pattern": "Intervals", "company": "Google", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Product of Array Except Self", "link": "https://leetcode.com/problems/product-of-array-except-self/", "pattern": "Array", "company": "Facebook", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Two Sum", "link": "https://leetcode.com/problems/two-sum/", "pattern": "Array", "company": "Amazon", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Kth Smallest Element in BST", "link": "https://leetcode.com/problems/kth-smallest-element-in-a-bst/", "pattern": "Tree", "company": "Amazon", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "N-Queens", "link": "https://leetcode.com/problems/n-queens/", "pattern": "Backtracking", "company": "Google", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Combination Sum", "link": "https://leetcode.com/problems/combination-sum/", "pattern": "Backtracking", "company": "Amazon", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Coin Change", "link": "https://leetcode.com/problems/coin-change/", "pattern": "DP", "company": "Microsoft", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Climbing Stairs", "link": "https://leetcode.com/problems/climbing-stairs/", "pattern": "DP", "company": "Amazon", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Daily Temperatures", "link": "https://leetcode.com/problems/daily-temperatures/", "pattern": "Stack", "company": "Amazon", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Valid Parentheses", "link": "https://leetcode.com/problems/valid-parentheses/", "pattern": "Stack", "company": "Amazon", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Pacific Atlantic Water Flow", "link": "https://leetcode.com/problems/pacific-atlantic-water-flow/", "pattern": "Graph", "company": "Google", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Clone Graph", "link": "https://leetcode.com/problems/clone-graph/", "pattern": "Graph", "company": "Facebook", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Merge Two Sorted Lists", "link": "https://leetcode.com/problems/merge-two-sorted-lists/", "pattern": "Linked List", "company": "Google", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Find Minimum in Rotated Sorted Array", "link": "https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/", "pattern": "Binary Search", "company": "Google", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Kth Largest Element", "link": "https://leetcode.com/problems/kth-largest-element-in-an-array/", "pattern": "Heap", "company": "Amazon", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Valid Anagram", "link": "https://leetcode.com/problems/valid-anagram/", "pattern": "Hashing", "company": "Facebook", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Container With Most Water", "link": "https://leetcode.com/problems/container-with-most-water/", "pattern": "Two Pointer", "company": "Facebook", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Merge Intervals", "link": "https://leetcode.com/problems/merge-intervals/", "pattern": "Intervals", "company": "Adobe", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Contains Duplicate", "link": "https://leetcode.com/problems/contains-duplicate/", "pattern": "Array", "company": "Google", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Serialize and Deserialize Binary Tree", "link": "https://leetcode.com/problems/serialize-and-deserialize-binary-tree/", "pattern": "Tree", "company": "Amazon", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Validate Binary Search Tree", "link": "https://leetcode.com/problems/validate-binary-search-tree/", "pattern": "Tree", "company": "Google", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Permutations", "link": "https://leetcode.com/problems/permutations/", "pattern": "Backtracking", "company": "Microsoft", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Word Break", "link": "https://leetcode.com/problems/word-break/", "pattern": "DP", "company": "Amazon", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "House Robber II", "link": "https://leetcode.com/problems/house-robber-ii/", "pattern": "DP", "company": "Amazon", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Largest Rectangle in Histogram", "link": "https://leetcode.com/problems/largest-rectangle-in-histogram/", "pattern": "Stack", "company": "Facebook", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Evaluate Reverse Polish Notation", "link": "https://leetcode.com/problems/evaluate-reverse-polish-notation/", "pattern": "Stack", "company": "Microsoft", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Word Ladder", "link": "https://leetcode.com/problems/word-ladder/", "pattern": "Graph", "company": "Facebook", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Course Schedule", "link": "https://leetcode.com/problems/course-schedule/", "pattern": "Graph", "company": "Amazon", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Remove Nth Node From End", "link": "https://leetcode.com/problems/remove-nth-node-from-end-of-list/", "pattern": "Linked List", "company": "Amazon", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Linked List Cycle", "link": "https://leetcode.com/problems/linked-list-cycle/", "pattern": "Linked List", "company": "Microsoft", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Search in Rotated Sorted Array", "link": "https://leetcode.com/problems/search-in-rotated-sorted-array/", "pattern": "Binary Search", "company": "Amazon", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Top K Frequent Elements", "link": "https://leetcode.com/problems/top-k-frequent-elements/", "pattern": "Heap", "company": "Facebook", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Minimum Window Substring", "link": "https://leetcode.com/problems/minimum-window-substring/", "pattern": "Sliding Window", "company": "Amazon", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "3Sum", "link": "https://leetcode.com/problems/3sum/", "pattern": "Two Pointer", "company": "Amazon", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Maximum Subarray", "link": "https://leetcode.com/problems/maximum-subarray/", "pattern": "DP", "company": "Microsoft", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Best Time to Buy and Sell Stock", "link": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock/", "pattern": "Array", "company": "Amazon", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Lowest Common Ancestor", "link": "https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/", "pattern": "Tree", "company": "Facebook", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Binary Tree Level Order Traversal", "link": "https://leetcode.com/problems/binary-tree-level-order-traversal/", "pattern": "Tree", "company": "Amazon", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Subsets", "link": "https://leetcode.com/problems/subsets/", "pattern": "Backtracking", "company": "Facebook", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Longest Increasing Subsequence", "link": "https://leetcode.com/problems/longest-increasing-subsequence/", "pattern": "DP", "company": "Google", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "House Robber", "link": "https://leetcode.com/problems/house-robber/", "pattern": "DP", "company": "Google", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Car Fleet", "link": "https://leetcode.com/problems/car-fleet/", "pattern": "Stack", "company": "Google", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Min Stack", "link": "https://leetcode.com/problems/min-stack/", "pattern": "Stack", "company": "Google", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Rotting Oranges", "link": "https://leetcode.com/problems/rotting-oranges/", "pattern": "Graph", "company": "Amazon", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Number of Islands", "link": "https://leetcode.com/problems/number-of-islands/", "pattern": "Graph", "company": "Google", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Reorder List", "link": "https://leetcode.com/problems/reorder-list/", "pattern": "Linked List", "company": "Facebook", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Reverse Linked List", "link": "https://leetcode.com/problems/reverse-linked-list/", "pattern": "Linked List", "company": "Amazon", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Binary Search", "link": "https://leetcode.com/problems/binary-search/", "pattern": "Binary Search", "company": "Microsoft", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Group Anagrams", "link": "https://leetcode.com/problems/group-anagrams/", "pattern": "Hashing", "company": "Amazon", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Longest Substring Without Repeating Characters", "link": "https://leetcode.com/problems/longest-substring-without-repeating-characters/", "pattern": "Sliding Window", "company": "Google", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Insert Interval", "link": "https://leetcode.com/problems/insert-interval/", "pattern": "Intervals", "company": "Google", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Product of Array Except Self", "link": "https://leetcode.com/problems/product-of-array-except-self/", "pattern": "Array", "company": "Facebook", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Two Sum", "link": "https://leetcode.com/problems/two-sum/", "pattern": "Array", "company": "Amazon", "difficulty": "Easy", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Serialize and Deserialize Binary Tree", "link": "https://leetcode.com/problems/serialize-and-deserialize-binary-tree/", "pattern": "Tree", "company": "Amazon", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Validate Binary Search Tree", "link": "https://leetcode.com/problems/validate-binary-search-tree/", "pattern": "Tree", "company": "Google", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Permutations", "link": "https://leetcode.com/problems/permutations/", "pattern": "Backtracking", "company": "Microsoft", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Word Break", "link": "https://leetcode.com/problems/word-break/", "pattern": "DP", "company": "Amazon", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "House Robber II", "link": "https://leetcode.com/problems/house-robber-ii/", "pattern": "DP", "company": "Amazon", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Largest Rectangle in Histogram", "link": "https://leetcode.com/problems/largest-rectangle-in-histogram/", "pattern": "Stack", "company": "Facebook", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Evaluate Reverse Polish Notation", "link": "https://leetcode.com/problems/evaluate-reverse-polish-notation/", "pattern": "Stack", "company": "Microsoft", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Word Ladder", "link": "https://leetcode.com/problems/word-ladder/", "pattern": "Graph", "company": "Facebook", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Course Schedule", "link": "https://leetcode.com/problems/course-schedule/", "pattern": "Graph", "company": "Amazon", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Remove Nth Node From End", "link": "https://leetcode.com/problems/remove-nth-node-from-end-of-list/", "pattern": "Linked List", "company": "Amazon", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Linked List Cycle", "link": "https://leetcode.com/problems/linked-list-cycle/", "pattern": "Linked List", "company": "Microsoft", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Search in Rotated Sorted Array", "link": "https://leetcode.com/problems/search-in-rotated-sorted-array/", "pattern": "Binary Search", "company": "Amazon", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Top K Frequent Elements", "link": "https://leetcode.com/problems/top-k-frequent-elements/", "pattern": "Heap", "company": "Facebook", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Minimum Window Substring", "link": "https://leetcode.com/problems/minimum-window-substring/", "pattern": "Sliding Window", "company": "Amazon", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "3Sum", "link": "https://leetcode.com/problems/3sum/", "pattern": "Two Pointer", "company": "Amazon", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Maximum Subarray", "link": "https://leetcode.com/problems/maximum-subarray/", "pattern": "DP", "company": "Microsoft", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Best Time to Buy and Sell Stock", "link": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock/", "pattern": "Array", "company": "Amazon", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Lowest Common Ancestor", "link": "https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/", "pattern": "Tree", "company": "Facebook", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Binary Tree Level Order Traversal", "link": "https://leetcode.com/problems/binary-tree-level-order-traversal/", "pattern": "Tree", "company": "Amazon", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Subsets", "link": "https://leetcode.com/problems/subsets/", "pattern": "Backtracking", "company": "Facebook", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Longest Increasing Subsequence", "link": "https://leetcode.com/problems/longest-increasing-subsequence/", "pattern": "DP", "company": "Google", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "House Robber", "link": "https://leetcode.com/problems/house-robber/", "pattern": "DP", "company": "Google", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Car Fleet", "link": "https://leetcode.com/problems/car-fleet/", "pattern": "Stack", "company": "Google", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Min Stack", "link": "https://leetcode.com/problems/min-stack/", "pattern": "Stack", "company": "Google", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Rotting Oranges", "link": "https://leetcode.com/problems/rotting-oranges/", "pattern": "Graph", "company": "Amazon", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Number of Islands", "link": "https://leetcode.com/problems/number-of-islands/", "pattern": "Graph", "company": "Google", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Reorder List", "link": "https://leetcode.com/problems/reorder-list/", "pattern": "Linked List", "company": "Facebook", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Reverse Linked List", "link": "https://leetcode.com/problems/reverse-linked-list/", "pattern": "Linked List", "company": "Amazon", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Binary Search", "link": "https://leetcode.com/problems/binary-search/", "pattern": "Binary Search", "company": "Microsoft", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Group Anagrams", "link": "https://leetcode.com/problems/group-anagrams/", "pattern": "Hashing", "company": "Amazon", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Longest Substring Without Repeating Characters", "link": "https://leetcode.com/problems/longest-substring-without-repeating-characters/", "pattern": "Sliding Window", "company": "Google", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Insert Interval", "link": "https://leetcode.com/problems/insert-interval/", "pattern": "Intervals", "company": "Google", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Product of Array Except Self", "link": "https://leetcode.com/problems/product-of-array-except-self/", "pattern": "Array", "company": "Facebook", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Two Sum", "link": "https://leetcode.com/problems/two-sum/", "pattern": "Array", "company": "Amazon", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Kth Smallest Element in BST", "link": "https://leetcode.com/problems/kth-smallest-element-in-a-bst/", "pattern": "Tree", "company": "Amazon", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "N-Queens", "link": "https://leetcode.com/problems/n-queens/", "pattern": "Backtracking", "company": "Google", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Combination Sum", "link": "https://leetcode.com/problems/combination-sum/", "pattern": "Backtracking", "company": "Amazon", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Coin Change", "link": "https://leetcode.com/problems/coin-change/", "pattern": "DP", "company": "Microsoft", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Climbing Stairs", "link": "https://leetcode.com/problems/climbing-stairs/", "pattern": "DP", "company": "Amazon", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Daily Temperatures", "link": "https://leetcode.com/problems/daily-temperatures/", "pattern": "Stack", "company": "Amazon", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Valid Parentheses", "link": "https://leetcode.com/problems/valid-parentheses/", "pattern": "Stack", "company": "Amazon", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Pacific Atlantic Water Flow", "link": "https://leetcode.com/problems/pacific-atlantic-water-flow/", "pattern": "Graph", "company": "Google", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Clone Graph", "link": "https://leetcode.com/problems/clone-graph/", "pattern": "Graph", "company": "Facebook", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Merge Two Sorted Lists", "link": "https://leetcode.com/problems/merge-two-sorted-lists/", "pattern": "Linked List", "company": "Google", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Find Minimum in Rotated Sorted Array", "link": "https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/", "pattern": "Binary Search", "company": "Google", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Kth Largest Element", "link": "https://leetcode.com/problems/kth-largest-element-in-an-array/", "pattern": "Heap", "company": "Amazon", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Valid Anagram", "link": "https://leetcode.com/problems/valid-anagram/", "pattern": "Hashing", "company": "Facebook", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Container With Most Water", "link": "https://leetcode.com/problems/container-with-most-water/", "pattern": "Two Pointer", "company": "Facebook", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Merge Intervals", "link": "https://leetcode.com/problems/merge-intervals/", "pattern": "Intervals", "company": "Adobe", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Contains Duplicate", "link": "https://leetcode.com/problems/contains-duplicate/", "pattern": "Array", "company": "Google", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Serialize and Deserialize Binary Tree", "link": "https://leetcode.com/problems/serialize-and-deserialize-binary-tree/", "pattern": "Tree", "company": "Amazon", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Validate Binary Search Tree", "link": "https://leetcode.com/problems/validate-binary-search-tree/", "pattern": "Tree", "company": "Google", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Permutations", "link": "https://leetcode.com/problems/permutations/", "pattern": "Backtracking", "company": "Microsoft", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Word Break", "link": "https://leetcode.com/problems/word-break/", "pattern": "DP", "company": "Amazon", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "House Robber II", "link": "https://leetcode.com/problems/house-robber-ii/", "pattern": "DP", "company": "Amazon", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Largest Rectangle in Histogram", "link": "https://leetcode.com/problems/largest-rectangle-in-histogram/", "pattern": "Stack", "company": "Facebook", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Evaluate Reverse Polish Notation", "link": "https://leetcode.com/problems/evaluate-reverse-polish-notation/", "pattern": "Stack", "company": "Microsoft", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Word Ladder", "link": "https://leetcode.com/problems/word-ladder/", "pattern": "Graph", "company": "Facebook", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Course Schedule", "link": "https://leetcode.com/problems/course-schedule/", "pattern": "Graph", "company": "Amazon", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Remove Nth Node From End", "link": "https://leetcode.com/problems/remove-nth-node-from-end-of-list/", "pattern": "Linked List", "company": "Amazon", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Linked List Cycle", "link": "https://leetcode.com/problems/linked-list-cycle/", "pattern": "Linked List", "company": "Microsoft", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Search in Rotated Sorted Array", "link": "https://leetcode.com/problems/search-in-rotated-sorted-array/", "pattern": "Binary Search", "company": "Amazon", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Top K Frequent Elements", "link": "https://leetcode.com/problems/top-k-frequent-elements/", "pattern": "Heap", "company": "Facebook", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Minimum Window Substring", "link": "https://leetcode.com/problems/minimum-window-substring/", "pattern": "Sliding Window", "company": "Amazon", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "3Sum", "link": "https://leetcode.com/problems/3sum/", "pattern": "Two Pointer", "company": "Amazon", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Maximum Subarray", "link": "https://leetcode.com/problems/maximum-subarray/", "pattern": "DP", "company": "Microsoft", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Best Time to Buy and Sell Stock", "link": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock/", "pattern": "Array", "company": "Amazon", "difficulty": "Medium", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Kth Smallest Element in BST", "link": "https://leetcode.com/problems/kth-smallest-element-in-a-bst/", "pattern": "Tree", "company": "Amazon", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "N-Queens", "link": "https://leetcode.com/problems/n-queens/", "pattern": "Backtracking", "company": "Google", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Combination Sum", "link": "https://leetcode.com/problems/combination-sum/", "pattern": "Backtracking", "company": "Amazon", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Coin Change", "link": "https://leetcode.com/problems/coin-change/", "pattern": "DP", "company": "Microsoft", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Climbing Stairs", "link": "https://leetcode.com/problems/climbing-stairs/", "pattern": "DP", "company": "Amazon", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Daily Temperatures", "link": "https://leetcode.com/problems/daily-temperatures/", "pattern": "Stack", "company": "Amazon", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Valid Parentheses", "link": "https://leetcode.com/problems/valid-parentheses/", "pattern": "Stack", "company": "Amazon", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Pacific Atlantic Water Flow", "link": "https://leetcode.com/problems/pacific-atlantic-water-flow/", "pattern": "Graph", "company": "Google", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Clone Graph", "link": "https://leetcode.com/problems/clone-graph/", "pattern": "Graph", "company": "Facebook", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Merge Two Sorted Lists", "link": "https://leetcode.com/problems/merge-two-sorted-lists/", "pattern": "Linked List", "company": "Google", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Find Minimum in Rotated Sorted Array", "link": "https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/", "pattern": "Binary Search", "company": "Google", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Kth Largest Element", "link": "https://leetcode.com/problems/kth-largest-element-in-an-array/", "pattern": "Heap", "company": "Amazon", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Valid Anagram", "link": "https://leetcode.com/problems/valid-anagram/", "pattern": "Hashing", "company": "Facebook", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Container With Most Water", "link": "https://leetcode.com/problems/container-with-most-water/", "pattern": "Two Pointer", "company": "Facebook", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Merge Intervals", "link": "https://leetcode.com/problems/merge-intervals/", "pattern": "Intervals", "company": "Adobe", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Contains Duplicate", "link": "https://leetcode.com/problems/contains-duplicate/", "pattern": "Array", "company": "Google", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Serialize and Deserialize Binary Tree", "link": "https://leetcode.com/problems/serialize-and-deserialize-binary-tree/", "pattern": "Tree", "company": "Amazon", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Validate Binary Search Tree", "link": "https://leetcode.com/problems/validate-binary-search-tree/", "pattern": "Tree", "company": "Google", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Permutations", "link": "https://leetcode.com/problems/permutations/", "pattern": "Backtracking", "company": "Microsoft", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Word Break", "link": "https://leetcode.com/problems/word-break/", "pattern": "DP", "company": "Amazon", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "House Robber II", "link": "https://leetcode.com/problems/house-robber-ii/", "pattern": "DP", "company": "Amazon", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Largest Rectangle in Histogram", "link": "https://leetcode.com/problems/largest-rectangle-in-histogram/", "pattern": "Stack", "company": "Facebook", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Evaluate Reverse Polish Notation", "link": "https://leetcode.com/problems/evaluate-reverse-polish-notation/", "pattern": "Stack", "company": "Microsoft", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Word Ladder", "link": "https://leetcode.com/problems/word-ladder/", "pattern": "Graph", "company": "Facebook", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Course Schedule", "link": "https://leetcode.com/problems/course-schedule/", "pattern": "Graph", "company": "Amazon", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Remove Nth Node From End", "link": "https://leetcode.com/problems/remove-nth-node-from-end-of-list/", "pattern": "Linked List", "company": "Amazon", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Linked List Cycle", "link": "https://leetcode.com/problems/linked-list-cycle/", "pattern": "Linked List", "company": "Microsoft", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Search in Rotated Sorted Array", "link": "https://leetcode.com/problems/search-in-rotated-sorted-array/", "pattern": "Binary Search", "company": "Amazon", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Top K Frequent Elements", "link": "https://leetcode.com/problems/top-k-frequent-elements/", "pattern": "Heap", "company": "Facebook", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Minimum Window Substring", "link": "https://leetcode.com/problems/minimum-window-substring/", "pattern": "Sliding Window", "company": "Amazon", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "3Sum", "link": "https://leetcode.com/problems/3sum/", "pattern": "Two Pointer", "company": "Amazon", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Maximum Subarray", "link": "https://leetcode.com/problems/maximum-subarray/", "pattern": "DP", "company": "Microsoft", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Best Time to Buy and Sell Stock", "link": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock/", "pattern": "Array", "company": "Amazon", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Lowest Common Ancestor", "link": "https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/", "pattern": "Tree", "company": "Facebook", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Binary Tree Level Order Traversal", "link": "https://leetcode.com/problems/binary-tree-level-order-traversal/", "pattern": "Tree", "company": "Amazon", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Subsets", "link": "https://leetcode.com/problems/subsets/", "pattern": "Backtracking", "company": "Facebook", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Longest Increasing Subsequence", "link": "https://leetcode.com/problems/longest-increasing-subsequence/", "pattern": "DP", "company": "Google", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "House Robber", "link": "https://leetcode.com/problems/house-robber/", "pattern": "DP", "company": "Google", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Car Fleet", "link": "https://leetcode.com/problems/car-fleet/", "pattern": "Stack", "company": "Google", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Min Stack", "link": "https://leetcode.com/problems/min-stack/", "pattern": "Stack", "company": "Google", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Rotting Oranges", "link": "https://leetcode.com/problems/rotting-oranges/", "pattern": "Graph", "company": "Amazon", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Number of Islands", "link": "https://leetcode.com/problems/number-of-islands/", "pattern": "Graph", "company": "Google", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Reorder List", "link": "https://leetcode.com/problems/reorder-list/", "pattern": "Linked List", "company": "Facebook", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Reverse Linked List", "link": "https://leetcode.com/problems/reverse-linked-list/", "pattern": "Linked List", "company": "Amazon", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Binary Search", "link": "https://leetcode.com/problems/binary-search/", "pattern": "Binary Search", "company": "Microsoft", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Group Anagrams", "link": "https://leetcode.com/problems/group-anagrams/", "pattern": "Hashing", "company": "Amazon", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Longest Substring Without Repeating Characters", "link": "https://leetcode.com/problems/longest-substring-without-repeating-characters/", "pattern": "Sliding Window", "company": "Google", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Insert Interval", "link": "https://leetcode.com/problems/insert-interval/", "pattern": "Intervals", "company": "Google", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Product of Array Except Self", "link": "https://leetcode.com/problems/product-of-array-except-self/", "pattern": "Array", "company": "Facebook", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Two Sum", "link": "https://leetcode.com/problems/two-sum/", "pattern": "Array", "company": "Amazon", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Kth Smallest Element in BST", "link": "https://leetcode.com/problems/kth-smallest-element-in-a-bst/", "pattern": "Tree", "company": "Amazon", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "N-Queens", "link": "https://leetcode.com/problems/n-queens/", "pattern": "Backtracking", "company": "Google", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Combination Sum", "link": "https://leetcode.com/problems/combination-sum/", "pattern": "Backtracking", "company": "Amazon", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Coin Change", "link": "https://leetcode.com/problems/coin-change/", "pattern": "DP", "company": "Microsoft", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Climbing Stairs", "link": "https://leetcode.com/problems/climbing-stairs/", "pattern": "DP", "company": "Amazon", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Daily Temperatures", "link": "https://leetcode.com/problems/daily-temperatures/", "pattern": "Stack", "company": "Amazon", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Valid Parentheses", "link": "https://leetcode.com/problems/valid-parentheses/", "pattern": "Stack", "company": "Amazon", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Pacific Atlantic Water Flow", "link": "https://leetcode.com/problems/pacific-atlantic-water-flow/", "pattern": "Graph", "company": "Google", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Clone Graph", "link": "https://leetcode.com/problems/clone-graph/", "pattern": "Graph", "company": "Facebook", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Merge Two Sorted Lists", "link": "https://leetcode.com/problems/merge-two-sorted-lists/", "pattern": "Linked List", "company": "Google", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Find Minimum in Rotated Sorted Array", "link": "https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/", "pattern": "Binary Search", "company": "Google", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Kth Largest Element", "link": "https://leetcode.com/problems/kth-largest-element-in-an-array/", "pattern": "Heap", "company": "Amazon", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Valid Anagram", "link": "https://leetcode.com/problems/valid-anagram/", "pattern": "Hashing", "company": "Facebook", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Container With Most Water", "link": "https://leetcode.com/problems/container-with-most-water/", "pattern": "Two Pointer", "company": "Facebook", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Merge Intervals", "link": "https://leetcode.com/problems/merge-intervals/", "pattern": "Intervals", "company": "Adobe", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}, {"name": "Contains Duplicate", "link": "https://leetcode.com/problems/contains-duplicate/", "pattern": "Array", "company": "Google", "difficulty": "Hard", "status": "Not Started", "rev1": "", "rev2": "", "rev3": ""}];
+const STORAGE_KEY = 'prepforge_dsa';
+let progress = {};
+let filters = { status: 'all', diff: 'all', pattern: 'all', search: '' };
+
+function loadProgress() {
+  try { progress = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch(e) { progress = {}; }
+}
+
+function saveProgress() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+}
+
+function getItem(idx) {
+  return progress[idx] || { status: 'Not Started', rev1: false, rev2: false, rev3: false };
+}
+
+function setItem(idx, key, val) {
+  if (!progress[idx]) progress[idx] = { status: 'Not Started', rev1: false, rev2: false, rev3: false };
+  progress[idx][key] = val;
+  saveProgress();
+  updateStats();
+  updateRowClass(idx);
+}
+
+function updateRowClass(idx) {
+  const row = document.querySelector(`tr[data-idx="${idx}"]`);
+  if (!row) return;
+  const item = getItem(idx);
+  row.className = item.status === 'Done' ? 'row-done' : '';
+}
+
+function updateStats() {
+  const done = Object.values(progress).filter(v => v.status === 'Done').length;
+  const pct = Math.round((done / 200) * 100);
+  document.getElementById('done-count').textContent = done;
+  document.getElementById('top-progress').style.width = pct + '%';
+  document.getElementById('pct-text').textContent = pct + '%';
+}
+
+function diffClass(d) {
+  if (d === 'Easy') return 'badge-easy';
+  if (d === 'Hard') return 'badge-hard';
+  return 'badge-medium';
+}
+
+function renderTable() {
+  const tbody = document.getElementById('dsa-tbody');
+  const s = filters.search.toLowerCase();
+  let showing = 0;
+  tbody.innerHTML = '';
+  
+  RAW_DATA.forEach((item, idx) => {
+    const prog = getItem(idx);
+    if (filters.status !== 'all' && prog.status !== filters.status) return;
+    if (filters.diff !== 'all' && item.difficulty !== filters.diff) return;
+    if (filters.pattern !== 'all' && item.pattern !== filters.pattern) return;
+    if (s && !item.name.toLowerCase().includes(s) && !item.pattern.toLowerCase().includes(s) && !item.company.toLowerCase().includes(s)) return;
+    
+    showing++;
+    const tr = document.createElement('tr');
+    tr.dataset.idx = idx;
+    tr.className = prog.status === 'Done' ? 'row-done' : '';
+    
+    const statusClass = prog.status === 'Done' ? 'status-done' : prog.status === 'In Progress' ? 'status-inprog' : prog.status === 'Skip' ? 'status-skip' : '';
+    
+    tr.innerHTML = `
+      <td style="color:var(--muted);font-size:0.75rem;font-family:'JetBrains Mono',monospace">${String(idx+1).padStart(3,'0')}</td>
+      <td>
+        <div class="prob-name">${item.name}</div>
+        ${item.link ? `<a href="${item.link}" target="_blank" class="prob-link">LeetCode <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg></a>` : ''}
+      </td>
+      <td><span class="badge badge-pattern">${item.pattern}</span></td>
+      <td><span class="badge badge-company">${item.company}</span></td>
+      <td><span class="badge ${diffClass(item.difficulty)}">${item.difficulty}</span></td>
+      <td>
+        <select class="status-select ${statusClass}" onchange="onStatusChange(${idx}, this)">
+          <option ${prog.status==='Not Started'?'selected':''}>Not Started</option>
+          <option ${prog.status==='In Progress'?'selected':''}>In Progress</option>
+          <option ${prog.status==='Done'?'selected':''}>Done</option>
+          <option ${prog.status==='Skip'?'selected':''}>Skip</option>
+        </select>
+      </td>
+      <td><div class="rev-btns"><button class="rev-btn ${prog.rev1?'rev-done':''}" onclick="toggleRev(${idx},1)">R1</button></div></td>
+      <td><div class="rev-btns"><button class="rev-btn ${prog.rev2?'rev-done':''}" onclick="toggleRev(${idx},2)">R2</button></div></td>
+      <td><div class="rev-btns"><button class="rev-btn ${prog.rev3?'rev-done':''}" onclick="toggleRev(${idx},3)">R3</button></div></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  
+  document.getElementById('showing-count').textContent = showing;
+  document.getElementById('no-results').style.display = showing === 0 ? 'block' : 'none';
+}
+
+function onStatusChange(idx, sel) {
+  const val = sel.value;
+  sel.className = 'status-select' + (val==='Done'?' status-done':val==='In Progress'?' status-inprog':val==='Skip'?' status-skip':'');
+  setItem(idx, 'status', val);
+  const row = sel.closest('tr');
+  row.className = val === 'Done' ? 'row-done' : '';
+}
+
+function toggleRev(idx, num) {
+  const key = 'rev' + num;
+  const curr = getItem(idx)[key];
+  setItem(idx, key, !curr);
+  const btn = document.querySelector(`tr[data-idx="${idx}"] .rev-btn:nth-child(${num})`);
+  // Re-render just that cell
+  renderTable();
+}
+
+// Filters
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const group = btn.dataset.filter;
+    document.querySelectorAll(`[data-filter="${group}"]`).forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    filters[group] = btn.dataset.value;
+    renderTable();
+  });
+});
+
+document.getElementById('search').addEventListener('input', e => {
+  filters.search = e.target.value;
+  renderTable();
+});
+
+// Populate pattern filters
+const patterns = [...new Set(RAW_DATA.map(r => r.pattern))].sort();
+const pfDiv = document.getElementById('pattern-filters');
+patterns.forEach(p => {
+  const btn = document.createElement('button');
+  btn.className = 'filter-btn';
+  btn.dataset.filter = 'pattern';
+  btn.dataset.value = p;
+  btn.textContent = p;
+  pfDiv.appendChild(btn);
+});
+
+loadProgress();
+renderTable();
+updateStats();
+</script>
 </body>
 </html>
