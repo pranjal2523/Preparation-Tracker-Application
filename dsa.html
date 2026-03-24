@@ -331,23 +331,7 @@ function toggleRev(idx, num) {
   renderTable();
 }
 
-// Filters
-document.querySelectorAll('.filter-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const group = btn.dataset.filter;
-    document.querySelectorAll(`[data-filter="${group}"]`).forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    filters[group] = btn.dataset.value;
-    renderTable();
-  });
-});
-
-document.getElementById('search').addEventListener('input', e => {
-  filters.search = e.target.value;
-  renderTable();
-});
-
-// Populate pattern filters
+// Populate pattern filters FIRST before attaching listeners
 const patterns = [...new Set(RAW_DATA.map(r => r.pattern))].sort();
 const pfDiv = document.getElementById('pattern-filters');
 patterns.forEach(p => {
@@ -357,6 +341,23 @@ patterns.forEach(p => {
   btn.dataset.value = p;
   btn.textContent = p;
   pfDiv.appendChild(btn);
+});
+
+// Use event delegation on the filters container so dynamically added buttons are covered
+document.querySelector('.filters').addEventListener('click', e => {
+  const btn = e.target.closest('.filter-btn');
+  if (!btn) return;
+  const group = btn.dataset.filter;
+  if (!group) return;
+  document.querySelectorAll(`[data-filter="${group}"]`).forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filters[group] = btn.dataset.value;
+  renderTable();
+});
+
+document.getElementById('search').addEventListener('input', e => {
+  filters.search = e.target.value;
+  renderTable();
 });
 
 loadProgress();
