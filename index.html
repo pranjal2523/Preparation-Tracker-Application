@@ -18,15 +18,15 @@
   --accent1: #7c6af7;
   --accent2: #f97060;
   --accent3: #4fc4a8;
+  --accent4: #f59e0b;
   --accent1-glow: rgba(124,106,247,0.25);
   --accent2-glow: rgba(249,112,96,0.25);
   --accent3-glow: rgba(79,196,168,0.25);
+  --accent4-glow: rgba(245,158,11,0.25);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-
 html { scroll-behavior: smooth; }
-
 body {
   font-family: 'DM Sans', sans-serif;
   background: var(--bg);
@@ -35,36 +35,30 @@ body {
   overflow-x: hidden;
 }
 
-/* Animated background */
+/* ── BACKGROUND ─────────────────────────────────────────────── */
 .bg-grid {
-  position: fixed;
-  inset: 0;
+  position: fixed; inset: 0;
   background-image:
     linear-gradient(rgba(124,106,247,0.04) 1px, transparent 1px),
     linear-gradient(90deg, rgba(124,106,247,0.04) 1px, transparent 1px);
   background-size: 60px 60px;
-  pointer-events: none;
-  z-index: 0;
+  pointer-events: none; z-index: 0;
 }
-
 .bg-orb {
-  position: fixed;
-  border-radius: 50%;
-  filter: blur(80px);
-  pointer-events: none;
-  z-index: 0;
+  position: fixed; border-radius: 50%; filter: blur(80px);
+  pointer-events: none; z-index: 0;
   animation: orb-drift 20s ease-in-out infinite alternate;
 }
 .bg-orb-1 { width: 500px; height: 500px; background: rgba(124,106,247,0.12); top: -100px; left: -100px; }
 .bg-orb-2 { width: 400px; height: 400px; background: rgba(249,112,96,0.08); bottom: 0; right: -100px; animation-delay: -7s; }
 .bg-orb-3 { width: 300px; height: 300px; background: rgba(79,196,168,0.08); top: 40%; left: 50%; animation-delay: -13s; }
-
+.bg-orb-4 { width: 280px; height: 280px; background: rgba(245,158,11,0.06); top: 20%; right: 10%; animation-delay: -4s; }
 @keyframes orb-drift {
   from { transform: translate(0,0) scale(1); }
   to   { transform: translate(40px, 30px) scale(1.1); }
 }
 
-/* NAV */
+/* ── NAV ────────────────────────────────────────────────────── */
 nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100;
   padding: 1rem 2rem;
@@ -73,39 +67,36 @@ nav {
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border);
 }
-
 .nav-logo {
   font-family: 'Syne', sans-serif;
   font-weight: 800; font-size: 1.3rem;
   background: linear-gradient(135deg, var(--accent1), var(--accent2));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  background-clip: text;
-  display: flex; align-items: center; gap: 0.5rem;
-  text-decoration: none;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  display: flex; align-items: center; gap: 0.5rem; text-decoration: none;
 }
-
 .nav-logo svg { -webkit-text-fill-color: initial; }
-
 .nav-links { display: flex; gap: 0.5rem; align-items: center; }
-
 .nav-link {
   color: var(--muted); text-decoration: none;
   font-size: 0.85rem; font-weight: 500;
-  padding: 0.4rem 0.9rem; border-radius: 6px;
-  transition: all 0.2s;
+  padding: 0.4rem 0.9rem; border-radius: 6px; transition: all 0.2s;
 }
 .nav-link:hover { color: var(--text); background: var(--surface2); }
+.nav-link.ml-link {
+  background: rgba(245,158,11,0.1);
+  border: 1px solid rgba(245,158,11,0.2);
+  color: var(--accent4);
+}
+.nav-link.ml-link:hover { background: rgba(245,158,11,0.2); color: var(--accent4); }
 
-/* HERO */
+/* ── HERO ───────────────────────────────────────────────────── */
 .hero {
   position: relative; z-index: 1;
   min-height: 100vh;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  text-align: center;
-  padding: 6rem 2rem 4rem;
+  text-align: center; padding: 6rem 2rem 4rem;
 }
-
 .hero-badge {
   display: inline-flex; align-items: center; gap: 0.5rem;
   background: var(--surface2); border: 1px solid var(--border);
@@ -114,38 +105,30 @@ nav {
   margin-bottom: 2rem;
   animation: fade-up 0.6s ease both;
 }
-
 .hero-badge span { width: 6px; height: 6px; border-radius: 50%; background: var(--accent3); animation: pulse 2s infinite; display: inline-block; }
-
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
 .hero-title {
   font-family: 'Syne', sans-serif;
   font-size: clamp(2.8rem, 8vw, 6rem);
-  font-weight: 800; line-height: 1.05;
-  letter-spacing: -0.02em;
+  font-weight: 800; line-height: 1.05; letter-spacing: -0.02em;
   margin-bottom: 1.5rem;
   animation: fade-up 0.7s ease 0.1s both;
 }
-
 .hero-title .line2 {
   background: linear-gradient(135deg, var(--accent1) 0%, var(--accent2) 100%);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  background-clip: text;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
 }
-
 .hero-sub {
   font-size: clamp(1rem, 2.5vw, 1.2rem);
-  color: var(--muted); max-width: 600px; line-height: 1.7;
+  color: var(--muted); max-width: 620px; line-height: 1.7;
   margin-bottom: 3rem;
   animation: fade-up 0.7s ease 0.2s both;
 }
-
 .hero-actions {
   display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;
   animation: fade-up 0.7s ease 0.3s both;
 }
-
 .btn-primary {
   display: inline-flex; align-items: center; gap: 0.5rem;
   background: var(--accent1); color: #fff;
@@ -156,7 +139,15 @@ nav {
   box-shadow: 0 0 30px var(--accent1-glow);
 }
 .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 40px var(--accent1-glow); }
-
+.btn-ml {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  background: rgba(245,158,11,0.15); color: var(--accent4);
+  padding: 0.8rem 1.8rem; border-radius: 10px;
+  font-weight: 600; font-size: 0.95rem;
+  text-decoration: none; border: 1px solid rgba(245,158,11,0.3); cursor: pointer;
+  transition: all 0.25s;
+}
+.btn-ml:hover { background: rgba(245,158,11,0.25); transform: translateY(-2px); box-shadow: 0 8px 30px var(--accent4-glow); }
 .btn-ghost {
   display: inline-flex; align-items: center; gap: 0.5rem;
   background: var(--surface); color: var(--text);
@@ -167,85 +158,104 @@ nav {
 }
 .btn-ghost:hover { border-color: var(--accent1); color: var(--accent1); transform: translateY(-2px); }
 
-/* STATS BAR */
+/* ── STATS BAR ──────────────────────────────────────────────── */
 .stats-bar {
   position: relative; z-index: 1;
   display: flex; justify-content: center; flex-wrap: wrap;
   gap: 2rem; padding: 2rem;
-  margin-top: -1rem;
   animation: fade-up 0.7s ease 0.4s both;
 }
-
-.stat-item {
-  text-align: center;
-}
+.stat-item { text-align: center; }
 .stat-num {
   font-family: 'Syne', sans-serif;
   font-size: 2rem; font-weight: 800;
   background: linear-gradient(135deg, var(--accent1), var(--accent3));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  background-clip: text;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.stat-num.ml-stat {
+  background: linear-gradient(135deg, var(--accent4), #fb923c);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
 }
 .stat-label { font-size: 0.78rem; color: var(--muted); font-weight: 500; margin-top: 0.2rem; }
 
-/* TRACKER CARDS */
+/* stat separator */
+.stat-sep { width: 1px; background: var(--border); align-self: stretch; display: none; }
+@media(min-width:600px){ .stat-sep { display:block; } }
+
+/* ── CARDS ──────────────────────────────────────────────────── */
 .trackers-section {
   position: relative; z-index: 1;
   padding: 4rem 2rem 6rem;
   max-width: 1200px; margin: 0 auto;
 }
-
-.section-header {
-  text-align: center; margin-bottom: 3rem;
-}
+.section-header { text-align: center; margin-bottom: 3rem; }
 .section-label {
   font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em;
   color: var(--accent1); font-weight: 600; margin-bottom: 0.75rem;
 }
-.section-title {
-  font-family: 'Syne', sans-serif;
-  font-size: clamp(1.8rem, 4vw, 2.5rem);
-  font-weight: 700;
-}
+.section-title { font-family: 'Syne', sans-serif; font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 700; }
 
+/* 2×2 grid with ML card full-width at bottom on small screens */
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem;
+}
+@media(max-width:720px){
+  .cards-grid { grid-template-columns: 1fr; }
+}
+.card-ml-wrap {
+  grid-column: 1 / -1; /* ML card spans full width as a highlight */
+}
+@media(min-width:1000px){
+  .card-ml-wrap { grid-column: auto; } /* back to single column on large screens → 2×2 */
+}
+
+/* Actually let's do 2 cols always with ML spanning if 3+1 layout */
+/* Override: 4 cards = 2×2 grid, all equal */
+@media(min-width:720px){
+  .cards-grid { grid-template-columns: repeat(2, 1fr); }
+  .card-ml-wrap { grid-column: auto; }
 }
 
 .tracker-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 2rem;
+  border-radius: 20px; padding: 2rem;
   text-decoration: none; color: inherit;
   display: block;
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  position: relative; overflow: hidden;
-  cursor: pointer;
+  position: relative; overflow: hidden; cursor: pointer;
 }
-
 .tracker-card::before {
-  content: '';
-  position: absolute; inset: 0; border-radius: 20px;
-  opacity: 0; transition: opacity 0.3s;
-  pointer-events: none;
+  content: ''; position: absolute; inset: 0; border-radius: 20px;
+  opacity: 0; transition: opacity 0.3s; pointer-events: none;
 }
-
-.tracker-card:hover {
-  transform: translateY(-6px);
-  border-color: transparent;
-}
+.tracker-card:hover { transform: translateY(-6px); border-color: transparent; }
 .tracker-card:hover::before { opacity: 1; }
 
+/* DSA */
 .card-dsa::before { background: linear-gradient(135deg, rgba(124,106,247,0.15), transparent); border: 1px solid rgba(124,106,247,0.4); border-radius: 20px; }
-.card-cs::before  { background: linear-gradient(135deg, rgba(249,112,96,0.15), transparent); border: 1px solid rgba(249,112,96,0.4); border-radius: 20px; }
-.card-sd::before  { background: linear-gradient(135deg, rgba(79,196,168,0.15), transparent); border: 1px solid rgba(79,196,168,0.4); border-radius: 20px; }
-
 .card-dsa:hover { box-shadow: 0 20px 60px rgba(124,106,247,0.2); }
+/* CS */
+.card-cs::before  { background: linear-gradient(135deg, rgba(249,112,96,0.15), transparent); border: 1px solid rgba(249,112,96,0.4); border-radius: 20px; }
 .card-cs:hover  { box-shadow: 0 20px 60px rgba(249,112,96,0.2); }
+/* SD */
+.card-sd::before  { background: linear-gradient(135deg, rgba(79,196,168,0.15), transparent); border: 1px solid rgba(79,196,168,0.4); border-radius: 20px; }
 .card-sd:hover  { box-shadow: 0 20px 60px rgba(79,196,168,0.2); }
+/* ML */
+.card-ml::before  { background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(251,146,60,0.05)); border: 1px solid rgba(245,158,11,0.4); border-radius: 20px; }
+.card-ml:hover  { box-shadow: 0 20px 60px rgba(245,158,11,0.25); }
+
+/* ML card gets a subtle NEW badge */
+.card-ml { border-color: rgba(245,158,11,0.15); }
+.new-badge {
+  position: absolute; top: 1.25rem; right: 1.25rem;
+  background: linear-gradient(135deg, var(--accent4), #fb923c);
+  color: #000; font-size: 0.62rem; font-weight: 800;
+  padding: 0.2rem 0.55rem; border-radius: 20px; letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
 
 .card-icon {
   width: 52px; height: 52px; border-radius: 14px;
@@ -255,19 +265,24 @@ nav {
 .card-dsa .card-icon { background: rgba(124,106,247,0.15); }
 .card-cs .card-icon  { background: rgba(249,112,96,0.15); }
 .card-sd .card-icon  { background: rgba(79,196,168,0.15); }
+.card-ml .card-icon  { background: rgba(245,158,11,0.15); }
 
-.card-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 1.3rem; font-weight: 700; margin-bottom: 0.5rem;
-}
+.card-title { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 700; margin-bottom: 0.5rem; }
 .card-desc { font-size: 0.88rem; color: var(--muted); line-height: 1.6; margin-bottom: 1.5rem; }
 
-.card-meta {
-  display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.5rem;
-}
+.card-meta { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
 .card-tag {
   font-size: 0.72rem; padding: 0.25rem 0.6rem; border-radius: 6px;
   background: var(--surface2); color: var(--muted); font-weight: 500;
+}
+.card-ml .card-tag { background: rgba(245,158,11,0.08); color: rgba(245,158,11,0.7); }
+
+/* ML edge tags */
+.card-edge { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.edge-pip {
+  font-size: 0.65rem; padding: 0.15rem 0.5rem; border-radius: 20px;
+  background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2);
+  color: var(--accent4); font-weight: 500;
 }
 
 .card-progress { margin-bottom: 1.25rem; }
@@ -280,6 +295,7 @@ nav {
 .card-dsa .progress-fill { background: linear-gradient(90deg, var(--accent1), #a78bfa); }
 .card-cs .progress-fill  { background: linear-gradient(90deg, var(--accent2), #fbbf24); }
 .card-sd .progress-fill  { background: linear-gradient(90deg, var(--accent3), #34d399); }
+.card-ml .progress-fill  { background: linear-gradient(90deg, var(--accent4), #fb923c); }
 
 .card-cta {
   display: flex; align-items: center; justify-content: space-between;
@@ -288,15 +304,41 @@ nav {
 .card-dsa .card-cta { color: var(--accent1); }
 .card-cs .card-cta  { color: var(--accent2); }
 .card-sd .card-cta  { color: var(--accent3); }
+.card-ml .card-cta  { color: var(--accent4); }
 
-/* FEATURES */
+/* ── OVERALL PROGRESS STRIP ─────────────────────────────────── */
+.progress-strip {
+  position: relative; z-index: 1;
+  max-width: 1200px; margin: 0 auto;
+  padding: 0 2rem 3rem;
+}
+.strip-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px; padding: 1.5rem 2rem;
+  display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;
+}
+.strip-label { font-family: 'Syne', sans-serif; font-size: 0.9rem; font-weight: 700; white-space: nowrap; }
+.strip-bars { flex: 1; display: flex; flex-direction: column; gap: 0.6rem; min-width: 200px; }
+.strip-row { display: flex; align-items: center; gap: 0.75rem; }
+.strip-name { font-size: 0.72rem; color: var(--muted); width: 90px; flex-shrink: 0; }
+.strip-track { flex: 1; height: 5px; background: var(--surface2); border-radius: 100px; overflow: hidden; }
+.strip-fill { height: 100%; border-radius: 100px; transition: width 1s ease 0.2s; }
+.strip-pct { font-size: 0.7rem; color: var(--muted); width: 30px; text-align: right; flex-shrink: 0; }
+.strip-total {
+  text-align: center; padding: 0 1rem;
+  border-left: 1px solid var(--border);
+}
+.strip-total-num { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; color: var(--text); }
+.strip-total-lbl { font-size: 0.7rem; color: var(--muted); }
+
+/* ── FEATURES ───────────────────────────────────────────────── */
 .features-section {
   position: relative; z-index: 1;
   padding: 4rem 2rem;
   max-width: 1100px; margin: 0 auto;
   border-top: 1px solid var(--border);
 }
-
 .features-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -305,44 +347,42 @@ nav {
 .feature-item {
   padding: 1.5rem;
   background: var(--surface); border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 14px; transition: border-color 0.2s;
 }
+.feature-item:hover { border-color: rgba(124,106,247,0.3); }
 .feature-icon { font-size: 1.5rem; margin-bottom: 0.75rem; }
 .feature-title { font-weight: 600; margin-bottom: 0.4rem; font-size: 0.95rem; }
 .feature-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
 
-/* FOOTER */
+/* ── FOOTER ─────────────────────────────────────────────────── */
 footer {
   position: relative; z-index: 1;
   text-align: center; padding: 2rem;
   border-top: 1px solid var(--border);
   color: var(--muted); font-size: 0.82rem;
 }
+footer strong { color: var(--text); }
 
-/* ANIMATIONS */
+/* ── ANIMATIONS ─────────────────────────────────────────────── */
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(24px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+.animate-in { animation: fade-up 0.6s ease both; }
 
-.animate-in {
-  animation: fade-up 0.6s ease both;
-}
-
-/* MOBILE */
+/* ── MOBILE ─────────────────────────────────────────────────── */
 @media (max-width: 640px) {
   nav { padding: 0.75rem 1rem; }
-  .nav-links .nav-link { padding: 0.3rem 0.6rem; font-size: 0.8rem; }
+  .nav-links .nav-link { padding: 0.3rem 0.6rem; font-size: 0.78rem; }
   .hero { padding: 5rem 1.25rem 3rem; }
   .hero-actions { flex-direction: column; align-items: center; }
-  .btn-primary, .btn-ghost { width: 100%; max-width: 280px; justify-content: center; }
-  .stats-bar { gap: 1.5rem; }
-  .trackers-section { padding: 3rem 1.25rem 4rem; }
-  .cards-grid { grid-template-columns: 1fr; }
+  .btn-primary, .btn-ghost, .btn-ml { width: 100%; max-width: 280px; justify-content: center; }
+  .stats-bar { gap: 1.25rem; }
+  .trackers-section { padding: 3rem 1.25rem 3rem; }
+  .progress-strip { padding: 0 1.25rem 2rem; }
+  .strip-card { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  .strip-total { border-left: none; border-top: 1px solid var(--border); padding-top: 1rem; width: 100%; }
 }
-
-/* Number counter animation */
-.counter { display: inline-block; }
 </style>
 </head>
 <body>
@@ -351,7 +391,9 @@ footer {
 <div class="bg-orb bg-orb-1"></div>
 <div class="bg-orb bg-orb-2"></div>
 <div class="bg-orb bg-orb-3"></div>
+<div class="bg-orb bg-orb-4"></div>
 
+<!-- NAV -->
 <nav>
   <a href="index.html" class="nav-logo">
     <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -365,59 +407,76 @@ footer {
     <a href="dsa.html" class="nav-link">DSA</a>
     <a href="cs.html" class="nav-link">CS Concepts</a>
     <a href="sd.html" class="nav-link">System Design</a>
+    <a href="ML_GenAI_Tracker.html" class="nav-link ml-link">🤖 ML & GenAI</a>
   </div>
 </nav>
 
+<!-- HERO -->
 <section class="hero">
   <div class="hero-badge">
     <span></span>
-    Interactive Interview Prep Tracker
+    Interactive Interview Prep Tracker — Now with ML & GenAI
   </div>
   <h1 class="hero-title">
     Crack Every<br/>
     <span class="line2">Tech Interview</span>
   </h1>
   <p class="hero-sub">
-    Your all-in-one prep hub with 550+ curated problems, smart progress tracking, revision scheduling, and instant resource access.
+    Your all-in-one prep hub with 634+ curated problems, smart progress tracking, revision scheduling, and a dedicated ML & GenAI learning tracker built around your fintech background.
   </p>
   <div class="hero-actions">
     <a href="dsa.html" class="btn-primary">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
       Start Practicing
     </a>
+    <a href="ML_GenAI_Tracker.html" class="btn-ml">
+      🤖 ML & GenAI Tracker
+    </a>
     <a href="#trackers" class="btn-ghost">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-      View Trackers
+      View All Trackers
     </a>
   </div>
 </section>
 
+<!-- STATS BAR -->
 <div class="stats-bar" id="stats">
   <div class="stat-item">
     <div class="stat-num" data-target="200">0</div>
     <div class="stat-label">DSA Problems</div>
   </div>
+  <div class="stat-sep"></div>
   <div class="stat-item">
     <div class="stat-num" data-target="275">0</div>
     <div class="stat-label">CS Concepts</div>
   </div>
+  <div class="stat-sep"></div>
   <div class="stat-item">
     <div class="stat-num" data-target="78">0</div>
     <div class="stat-label">System Design</div>
   </div>
+  <div class="stat-sep"></div>
   <div class="stat-item">
-    <div class="stat-num" data-target="553" id="total-count">0</div>
-    <div class="stat-label">Total Questions</div>
+    <div class="stat-num ml-stat" data-target="81">0</div>
+    <div class="stat-label">ML & GenAI Items</div>
+  </div>
+  <div class="stat-sep"></div>
+  <div class="stat-item">
+    <div class="stat-num" data-target="634">0</div>
+    <div class="stat-label">Total Items</div>
   </div>
 </div>
 
+<!-- TRACKER CARDS -->
 <section class="trackers-section" id="trackers">
   <div class="section-header">
     <div class="section-label">Your Prep Arsenal</div>
-    <h2 class="section-title">Three Trackers, One Goal</h2>
+    <h2 class="section-title">Four Trackers, One Goal</h2>
   </div>
+
   <div class="cards-grid">
 
+    <!-- DSA -->
     <a href="dsa.html" class="tracker-card card-dsa animate-in">
       <div class="card-icon">⚡</div>
       <h3 class="card-title">DSA Tracker</h3>
@@ -442,6 +501,7 @@ footer {
       </div>
     </a>
 
+    <!-- CS -->
     <a href="cs.html" class="tracker-card card-cs animate-in" style="animation-delay:0.1s">
       <div class="card-icon">🧠</div>
       <h3 class="card-title">CS Concepts</h3>
@@ -449,6 +509,7 @@ footer {
       <div class="card-meta">
         <span class="card-tag">Python</span>
         <span class="card-tag">Django</span>
+        <span class="card-tag">FastAPI</span>
         <span class="card-tag">Databases</span>
         <span class="card-tag">+7 more</span>
       </div>
@@ -465,6 +526,7 @@ footer {
       </div>
     </a>
 
+    <!-- System Design -->
     <a href="sd.html" class="tracker-card card-sd animate-in" style="animation-delay:0.2s">
       <div class="card-icon">🏗️</div>
       <h3 class="card-title">System Design</h3>
@@ -488,9 +550,82 @@ footer {
       </div>
     </a>
 
+    <!-- ML & GenAI — highlighted card -->
+    <div class="card-ml-wrap">
+      <a href="ML_GenAI_Tracker.html" class="tracker-card card-ml animate-in" style="animation-delay:0.3s">
+        <span class="new-badge">NEW</span>
+        <div class="card-icon">🤖</div>
+        <h3 class="card-title">ML & GenAI Tracker</h3>
+        <p class="card-desc">81 curated items — math foundations → ML core → deep learning → transformers → RAG → fine-tuning → MLOps. Built specifically around your FastAPI, PostgreSQL & fintech background.</p>
+        <div class="card-edge">
+          <span class="edge-pip">FastAPI → ML Serving</span>
+          <span class="edge-pip">PostgreSQL → pgvector</span>
+          <span class="edge-pip">Redis → LLM Caching</span>
+          <span class="edge-pip">Flash Routing → LLM Gateway</span>
+          <span class="edge-pip">PCI-DSS → Guardrails</span>
+        </div>
+        <div class="card-meta">
+          <span class="card-tag">Math</span>
+          <span class="card-tag">ML Core</span>
+          <span class="card-tag">Deep Learning</span>
+          <span class="card-tag">NLP</span>
+          <span class="card-tag">Gen AI & RAG</span>
+          <span class="card-tag">MLOps</span>
+          <span class="card-tag">🧠 Quiz</span>
+          <span class="card-tag">🗺 Roadmap</span>
+        </div>
+        <div class="card-progress">
+          <div class="progress-header">
+            <span>Progress</span>
+            <span id="ml-pct">0%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="ml-bar" style="width:0%"></div></div>
+        </div>
+        <div class="card-cta">
+          Open ML & GenAI Tracker
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </a>
+    </div>
+
   </div>
 </section>
 
+<!-- OVERALL PROGRESS STRIP -->
+<div class="progress-strip">
+  <div class="strip-card">
+    <div class="strip-label">📊 Overall<br/>Progress</div>
+    <div class="strip-bars">
+      <div class="strip-row">
+        <span class="strip-name">DSA</span>
+        <div class="strip-track"><div class="strip-fill" id="s-dsa" style="width:0%;background:linear-gradient(90deg,#7c6af7,#a78bfa)"></div></div>
+        <span class="strip-pct" id="sp-dsa">0%</span>
+      </div>
+      <div class="strip-row">
+        <span class="strip-name">CS Concepts</span>
+        <div class="strip-track"><div class="strip-fill" id="s-cs" style="width:0%;background:linear-gradient(90deg,#f97060,#fbbf24)"></div></div>
+        <span class="strip-pct" id="sp-cs">0%</span>
+      </div>
+      <div class="strip-row">
+        <span class="strip-name">System Design</span>
+        <div class="strip-track"><div class="strip-fill" id="s-sd" style="width:0%;background:linear-gradient(90deg,#4fc4a8,#34d399)"></div></div>
+        <span class="strip-pct" id="sp-sd">0%</span>
+      </div>
+      <div class="strip-row">
+        <span class="strip-name">ML & GenAI</span>
+        <div class="strip-track"><div class="strip-fill" id="s-ml" style="width:0%;background:linear-gradient(90deg,#f59e0b,#fb923c)"></div></div>
+        <span class="strip-pct" id="sp-ml">0%</span>
+      </div>
+    </div>
+    <div class="strip-total">
+      <div class="strip-total-num" id="total-done">0</div>
+      <div class="strip-total-lbl">Total Done</div>
+      <div style="font-size:0.68rem;color:var(--muted);margin-top:0.15rem">out of 634</div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
 <section class="features-section">
   <div class="section-header">
     <div class="section-label">Why PrepForge</div>
@@ -500,57 +635,56 @@ footer {
     <div class="feature-item">
       <div class="feature-icon">💾</div>
       <div class="feature-title">Persistent Progress</div>
-      <div class="feature-desc">All progress saved locally. Survives hard reloads, tab closes, and restarts. Only clears with cache wipe.</div>
+      <div class="feature-desc">All progress saved to localStorage. Survives hard reloads, tab closes, and restarts. No account needed.</div>
     </div>
     <div class="feature-item">
       <div class="feature-icon">🔄</div>
-      <div class="feature-title">Revision Tracking</div>
-      <div class="feature-desc">Track Rev 1, Rev 2, Rev 3 for spaced repetition. Know exactly what to revisit next.</div>
+      <div class="feature-title">Spaced Repetition</div>
+      <div class="feature-desc">Track Rev 1, Rev 2, Rev 3 for every item. Know exactly what to revisit next for maximum retention.</div>
     </div>
     <div class="feature-item">
       <div class="feature-icon">🔍</div>
       <div class="feature-title">Smart Filters</div>
-      <div class="feature-desc">Filter by topic, difficulty, status, company tags. Find exactly what to practice next.</div>
+      <div class="feature-desc">Filter by topic, difficulty, status, company tags across all trackers. Find exactly what to practice next.</div>
     </div>
     <div class="feature-item">
-      <div class="feature-icon">📊</div>
-      <div class="feature-title">Live Analytics</div>
-      <div class="feature-desc">Real-time progress bars, completion percentages, and topic-wise breakdown at a glance.</div>
+      <div class="feature-icon">🧠</div>
+      <div class="feature-title">Built-in Quiz</div>
+      <div class="feature-desc">25 ML & GenAI MCQ + code questions with explanations tied to your fintech stack and experience.</div>
     </div>
     <div class="feature-item">
-      <div class="feature-icon">🔗</div>
-      <div class="feature-title">Instant References</div>
-      <div class="feature-desc">Direct links to LeetCode, official docs, and curated resources for every problem.</div>
+      <div class="feature-icon">🗺️</div>
+      <div class="feature-title">Learning Roadmap</div>
+      <div class="feature-desc">Phase-by-phase ML roadmap from math foundations to production AI — mapped to your existing skills.</div>
     </div>
     <div class="feature-item">
       <div class="feature-icon">📱</div>
       <div class="feature-title">Mobile Friendly</div>
-      <div class="feature-desc">Fully responsive. Review on the go from your phone during commutes or breaks.</div>
+      <div class="feature-desc">Fully responsive. Review problems and quiz yourself on the go, during commutes or breaks.</div>
     </div>
   </div>
 </section>
 
 <footer>
-  <p>PrepForge — Track smarter, prep harder, land the job 🚀</p>
+  <p>PrepForge — Track smarter, prep harder, land the job 🚀 &nbsp;·&nbsp; Built for <strong>Pranjal Bajpai</strong></p>
 </footer>
 
 <script>
-// Counter animation
+// ── Counter animation ─────────────────────────────────────────
 function animateCounter(el, target) {
   let start = 0;
   const duration = 1500;
-  const step = (timestamp) => {
-    if (!start) start = timestamp;
-    const progress = Math.min((timestamp - start) / duration, 1);
-    const eased = 1 - Math.pow(1 - progress, 3);
-    el.textContent = Math.floor(eased * target);
-    if (progress < 1) requestAnimationFrame(step);
+  const step = (ts) => {
+    if (!start) start = ts;
+    const p = Math.min((ts - start) / duration, 1);
+    const e = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.floor(e * target);
+    if (p < 1) requestAnimationFrame(step);
     else el.textContent = target;
   };
   requestAnimationFrame(step);
 }
 
-// Observe stats bar
 const statsObs = new IntersectionObserver((entries) => {
   entries.forEach(e => {
     if (e.isIntersecting) {
@@ -563,48 +697,68 @@ const statsObs = new IntersectionObserver((entries) => {
 }, { threshold: 0.3 });
 statsObs.observe(document.getElementById('stats'));
 
-// Load progress from localStorage
+// ── Load progress from all trackers ──────────────────────────
 function loadProgress() {
-  const dsaProgress = JSON.parse(localStorage.getItem('prepforge_dsa') || '{}');
-  const csProgress  = JSON.parse(localStorage.getItem('prepforge_cs') || '{}');
-  const sdProgress  = JSON.parse(localStorage.getItem('prepforge_sd') || '{}');
+  // DSA
+  const dsaP = JSON.parse(localStorage.getItem('prepforge_dsa_v2') || '{}');
+  const dsaDone = Object.values(dsaP).filter(v => v.status === 'Done').length;
+  const dsaPct  = Math.round((dsaDone / 200) * 100);
 
-  const dsaDone = Object.values(dsaProgress).filter(v => v.status === 'Done').length;
-  const csDone  = Object.values(csProgress).filter(v => v.status === 'Done').length;
-  const sdDone  = Object.values(sdProgress).filter(v => v.status === 'Done').length;
+  // CS Questions
+  const csP  = JSON.parse(localStorage.getItem('prepforge_cs') || '{}');
+  const csDone  = Object.values(csP).filter(v => v.status === 'Done').length;
+  const csPct   = Math.round((csDone  / 275) * 100);
 
-  const dsaPct = Math.round((dsaDone / 200) * 100);
-  const csPct  = Math.round((csDone / 275) * 100);
-  const sdPct  = Math.round((sdDone / 78) * 100);
+  // System Design
+  const sdP  = JSON.parse(localStorage.getItem('prepforge_sd') || '{}');
+  const sdDone  = Object.values(sdP).filter(v => v.status === 'Done').length;
+  const sdPct   = Math.round((sdDone  / 78)  * 100);
 
+  // ML & GenAI tracker
+  const mlP  = JSON.parse(localStorage.getItem('pranjal_ml_v1') || '{}');
+  const mlDone  = Object.values(mlP).filter(v => v.status === 'Done').length;
+  const mlPct   = Math.round((mlDone  / 81)  * 100);
+
+  const totalDone = dsaDone + csDone + sdDone + mlDone;
+
+  // Update card progress bars
   document.getElementById('dsa-pct').textContent = dsaPct + '%';
-  document.getElementById('cs-pct').textContent  = csPct + '%';
-  document.getElementById('sd-pct').textContent  = sdPct + '%';
+  document.getElementById('cs-pct').textContent  = csPct  + '%';
+  document.getElementById('sd-pct').textContent  = sdPct  + '%';
+  document.getElementById('ml-pct').textContent  = mlPct  + '%';
+
+  // Update strip bars
+  document.getElementById('sp-dsa').textContent = dsaPct + '%';
+  document.getElementById('sp-cs').textContent  = csPct  + '%';
+  document.getElementById('sp-sd').textContent  = sdPct  + '%';
+  document.getElementById('sp-ml').textContent  = mlPct  + '%';
+  document.getElementById('total-done').textContent = totalDone;
 
   setTimeout(() => {
     document.getElementById('dsa-bar').style.width = dsaPct + '%';
-    document.getElementById('cs-bar').style.width  = csPct + '%';
-    document.getElementById('sd-bar').style.width  = sdPct + '%';
+    document.getElementById('cs-bar').style.width  = csPct  + '%';
+    document.getElementById('sd-bar').style.width  = sdPct  + '%';
+    document.getElementById('ml-bar').style.width  = mlPct  + '%';
+    document.getElementById('s-dsa').style.width   = dsaPct + '%';
+    document.getElementById('s-cs').style.width    = csPct  + '%';
+    document.getElementById('s-sd').style.width    = sdPct  + '%';
+    document.getElementById('s-ml').style.width    = mlPct  + '%';
   }, 300);
 }
 
 loadProgress();
 
-// Animate cards on scroll
+// ── Card entrance animation ───────────────────────────────────
 const cardObs = new IntersectionObserver((entries) => {
-  entries.forEach(e => {
-    if (e.isIntersecting) e.target.style.opacity = '1';
-  });
+  entries.forEach(e => { if (e.isIntersecting) e.target.style.opacity = '1'; });
 }, { threshold: 0.1 });
+
 document.querySelectorAll('.animate-in').forEach(el => {
   el.style.opacity = '0';
   cardObs.observe(el);
 });
-// Re-trigger in case already visible
 setTimeout(() => {
-  document.querySelectorAll('.animate-in').forEach(el => {
-    el.style.opacity = '';
-  });
+  document.querySelectorAll('.animate-in').forEach(el => { el.style.opacity = ''; });
 }, 50);
 </script>
 </body>
